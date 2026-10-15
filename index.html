@@ -1,0 +1,1533 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>LeetCode Pattern Map</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#EDF0F4; --paper:#FFFFFF; --ink:#16233A; --muted:#5A6678; --line:#D3D9E2;
+  --p1:#0E7C78; --p2:#2F5DA8; --p3:#7A3E8E; --p4:#B7791F;
+  --easy:#1F8A4C; --med:#B7791F; --hard:#C0392B; --code:#F3F5F8; --hi:#FFF4D6; --onc:#FFFFFF;
+  --g0:#F6C9A8; --g1:#BFE3C0; --g2:#C9D7F5; --g3:#F3D27A; --g4:#E3C4EE; --g5:#BFE7E4;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0F1522; --paper:#172033; --ink:#E6EBF3; --muted:#9AA6B8; --line:#2A3650;
+    --p1:#3CC3BC; --p2:#6E9BEA; --p3:#C08AD3; --p4:#E7B04F;
+    --easy:#4CC27F; --med:#E7B04F; --hard:#EF6B5E; --code:#111a2b; --hi:#3a3220; --onc:#0F1522;
+    --g0:#7A4B2A; --g1:#2F6A3A; --g2:#34497A; --g3:#7A6320; --g4:#5E3F70; --g5:#2B6663;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0F1522; --paper:#172033; --ink:#E6EBF3; --muted:#9AA6B8; --line:#2A3650;
+  --p1:#3CC3BC; --p2:#6E9BEA; --p3:#C08AD3; --p4:#E7B04F;
+  --easy:#4CC27F; --med:#E7B04F; --hard:#EF6B5E; --code:#111a2b; --hi:#3a3220; --onc:#0F1522;
+    --g0:#7A4B2A; --g1:#2F6A3A; --g2:#34497A; --g3:#7A6320; --g4:#5E3F70; --g5:#2B6663;
+}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:calc(env(safe-area-inset-top,0px) + 70px)}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 "IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif}
+h1,h2,h3{font-family:"Bricolage Grotesque","IBM Plex Sans",system-ui,sans-serif;line-height:1.15;margin:0}
+a{color:inherit}
+code,pre{font-family:"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace}
+.wrap{max-width:1080px;margin:0 auto;padding:0 20px}
+header.hero{padding:48px 0 28px}
+.hero h1{font-size:clamp(2.2rem,6vw,4rem);font-weight:800;letter-spacing:-.02em;max-width:16ch}
+.hero p{color:var(--muted);max-width:62ch;margin:14px 0 0;font-size:1.05rem}
+.overall{display:flex;align-items:center;gap:14px;margin-top:22px;flex-wrap:wrap}
+.overall .bar{flex:1;min-width:200px;height:10px;background:var(--line);border-radius:6px;overflow:hidden}
+.overall .bar i{display:block;height:100%;background:var(--ink);width:0;transition:width .4s}
+.overall b{font-family:"Bricolage Grotesque",sans-serif;font-size:1.4rem}
+
+/* transit map */
+.map{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:22px 18px 10px;margin:8px 0 34px;overflow-x:auto}
+.map h2{font-size:1.25rem;margin-bottom:4px}
+.map .sub{color:var(--muted);font-size:.92rem;margin:0 0 14px}
+.lineRow{display:grid;grid-template-columns:150px 1fr;align-items:start;gap:10px;padding:12px 0;border-top:1px dashed var(--line)}
+.lineRow:first-of-type{border-top:0}
+.lineName{font-weight:600;font-size:.92rem}
+.lineName small{display:block;color:var(--muted);font-weight:400}
+.route{position:relative;min-height:80px}
+.route svg{position:absolute;left:0;top:0;overflow:visible}
+.rbase,.rprog{fill:none;stroke:var(--c);stroke-width:7;stroke-linecap:round;stroke-linejoin:round}
+.rbase{opacity:.38}
+.rprog{transition:stroke-dashoffset .8s ease}
+.stop{position:absolute;transform:translate(-50%,-12px);display:flex;flex-direction:column;align-items:center;text-decoration:none;color:var(--ink);font-size:.78rem;text-align:center;line-height:1.25;z-index:1}
+.dot{display:block;position:relative;width:24px;height:24px;border-radius:50%;background:var(--paper);border:5px solid var(--c);margin-bottom:7px;overflow:hidden;transition:transform .2s ease,box-shadow .2s}
+.dot i{position:absolute;left:0;bottom:0;width:100%;background:var(--c);height:0;transition:height .5s}
+.stop.term .dot{width:30px;height:30px;border-width:6px;margin-top:-3px;box-shadow:0 0 0 3px var(--paper),0 0 0 5px var(--c)}
+.stop.done .dot{background:var(--c)}
+.stop:hover .dot,.stop:focus-visible .dot{transform:scale(1.18)}
+.stop .sl{padding:1px 4px;border-radius:5px;background:var(--paper)}
+.stop:hover .sl,.stop:focus-visible .sl{text-decoration:underline}
+.stop:focus-visible{outline:2px solid var(--c);outline-offset:3px;border-radius:6px}
+
+/* toolbar */
+.tools{position:sticky;top:0;z-index:5;background:var(--bg);padding:calc(env(safe-area-inset-top,0px) + 10px) 0 10px;margin-top:-10px;border-bottom:1px solid var(--line)}
+.tools .wrap{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.tools input[type=search]{flex:1;min-width:180px;padding:9px 12px;border:1px solid var(--line);border-radius:9px;background:var(--paper);color:var(--ink);font:inherit}
+.chip{border:1px solid var(--line);background:var(--paper);color:var(--ink);padding:8px 12px;border-radius:999px;font:500 .88rem "IBM Plex Sans",sans-serif;cursor:pointer}
+.chip[aria-pressed=true]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.chip:focus-visible,button:focus-visible,input:focus-visible,summary:focus-visible{outline:2px solid var(--p2);outline-offset:2px}
+
+/* pattern sections */
+.phaseHead{margin:40px 0 12px;display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+.phaseHead h2{font-size:1.7rem}
+.phaseHead p{color:var(--muted);margin:0}
+details.pat{background:var(--paper);border:1px solid var(--line);border-left:6px solid var(--c);border-radius:10px;margin:10px 0}
+details.pat>summary{list-style:none;cursor:pointer;padding:14px 16px;display:grid;grid-template-columns:1fr auto;gap:4px 14px;align-items:center}
+details.pat>summary::-webkit-details-marker{display:none}
+.pname{font-family:"Bricolage Grotesque",sans-serif;font-size:1.2rem;font-weight:700}
+.pname em{font-style:normal;font-weight:500;color:var(--muted);font-size:.95rem}
+.pmeta{grid-column:1/-1;display:flex;align-items:center;gap:10px;color:var(--muted);font-size:.85rem}
+.pmeta .bar{flex:1;max-width:220px;height:6px;background:var(--line);border-radius:4px;overflow:hidden}
+.pmeta .bar i{display:block;height:100%;background:var(--c);width:0}
+.caret{transition:transform .2s;color:var(--muted)}
+details[open] .caret{transform:rotate(90deg)}
+.body{padding:0 16px 16px}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.cols>*{min-width:0}
+.box h3{font-size:.95rem;margin:10px 0 6px;font-family:"IBM Plex Sans",sans-serif;font-weight:600}
+.box p,.box ul{margin:0;font-size:.93rem}
+.box ul{padding-left:18px}
+.analogy{background:var(--hi);border-radius:8px;padding:10px 12px;font-size:.93rem;margin-top:4px}
+pre{background:var(--code);border:1px solid var(--line);border-radius:8px;padding:12px;overflow-x:auto;font-size:.8rem;line-height:1.5;margin:6px 0 0}
+.cx{font-size:.85rem;color:var(--muted);margin-top:6px}
+table.probs{width:100%;border-collapse:collapse;margin-top:12px;font-size:.92rem}
+.tscroll{overflow-x:auto}
+table.probs td{padding:7px 6px;border-top:1px solid var(--line);vertical-align:middle}
+table.probs tr.solved td.t a{color:var(--muted);text-decoration:line-through}
+td.n{color:var(--muted);font-family:"JetBrains Mono",monospace;font-size:.8rem;width:52px}
+td.t a{text-decoration:none;font-weight:500}
+td.t a:hover{text-decoration:underline}
+.d{font-size:.75rem;font-weight:600;padding:2px 8px;border-radius:999px;border:1px solid currentColor}
+.d.E{color:var(--easy)}.d.M{color:var(--med)}.d.H{color:var(--hard)}
+td.ck{width:36px}
+td.ck input{width:18px;height:18px;accent-color:var(--c);cursor:pointer}
+button.star{background:none;border:0;cursor:pointer;font-size:1.05rem;color:var(--line);padding:2px 6px}
+button.star[aria-pressed=true]{color:var(--p4)}
+button.wip{background:none;border:1px solid var(--line);cursor:pointer;font-size:.72rem;color:var(--muted);padding:2px 7px;border-radius:999px;font:inherit;font-size:.72rem;white-space:nowrap}
+button.wip[aria-pressed=true]{background:var(--c);color:#fff;border-color:var(--c)}
+table.probs tr.wip td.t a{font-weight:600}
+table.probs tr.wip td.t a::after{content:" · in progress";font-weight:400;font-size:.78rem;color:var(--muted)}
+#saveMsg{font-size:.8rem;color:var(--muted);margin-left:10px}
+#saveMsg.ok{color:var(--p2,#2a9d6a)}
+#saveMsg.bad{color:#c0392b}
+.wipCnt{color:var(--muted);font-size:.78rem}
+.addRow{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:10px 0 2px;padding:8px 10px;border:1px dashed var(--line);border-radius:10px}
+.addRow input,.addRow select{font:inherit;font-size:.85rem;padding:5px 8px;border:1px solid var(--line);border-radius:8px;background:transparent;color:inherit}
+.addRow input.num{width:70px}.addRow input.title{flex:1;min-width:140px}.addRow input.url{flex:1;min-width:140px}
+.addRow button{font:inherit;font-size:.85rem;padding:5px 12px;border-radius:8px;border:1px solid var(--c);background:var(--c);color:#fff;cursor:pointer}
+.addRow .hint{width:100%;font-size:.75rem;color:var(--muted)}
+button.del{background:none;border:0;cursor:pointer;color:var(--muted);font-size:.9rem;padding:2px 6px}button.del:hover{color:#c0392b}
+tr.custom td.n::after{content:" ✎";font-size:.7rem;color:var(--muted)}
+.hidden{display:none!important}
+
+/* reference */
+.ref{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:20px;margin:40px 0 20px}
+.ref h2{font-size:1.5rem;margin-bottom:10px}
+.ref table{width:100%;border-collapse:collapse;font-size:.92rem}
+.ref th,.ref td{text-align:left;padding:8px;border-top:1px solid var(--line);vertical-align:top}
+.ref th{font-weight:600;border-top:0;color:var(--muted);font-size:.85rem}
+.steps{padding-left:20px;margin:0}
+.steps li{margin:6px 0}
+footer{color:var(--muted);font-size:.85rem;padding:30px 0 50px}
+.resetBtn{border:1px solid var(--line);background:none;color:var(--muted);padding:6px 12px;border-radius:8px;cursor:pointer;font:inherit;font-size:.85rem}
+@media (max-width:720px){
+  .rlab{width:48px;font-size:.64rem}
+  .vis{padding:10px}
+  .tools .chip{padding:6px 10px;font-size:.8rem}
+  .cols{grid-template-columns:1fr}
+  .lineRow{grid-template-columns:1fr}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+/* ===== visualizer ===== */
+.vis{border:1px solid var(--line);border-radius:12px;padding:14px;margin:2px 0 16px;background:color-mix(in srgb,var(--c) 6%,var(--paper))}
+.vhead{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.vhead h3{font-size:1.05rem;margin:0;font-family:"Bricolage Grotesque",sans-serif}
+.vsub{margin:2px 0 0;color:var(--muted);font-size:.85rem}
+.vctl{display:flex;gap:6px;flex-wrap:wrap}
+.vb{border:1px solid var(--line);background:var(--paper);color:var(--ink);border-radius:8px;padding:6px 11px;cursor:pointer;font:500 .85rem "IBM Plex Sans",sans-serif}
+.vb.play{background:var(--c);border-color:var(--c);color:var(--onc);min-width:84px}
+.vprog{height:4px;background:var(--line);border-radius:3px;margin:12px 0 4px;overflow:hidden}
+.vprog i{display:block;height:100%;width:0;background:var(--c);transition:width .3s}
+.stage{overflow-x:auto;padding:16px 4px 6px;min-height:120px}
+.note{font-size:.95rem;padding:10px 12px;border-radius:8px;background:var(--paper);border-left:4px solid var(--c);min-height:3.2em}
+.note .sn{font:600 .75rem "JetBrains Mono",monospace;color:var(--c);margin-right:6px}
+.side{display:flex;flex-wrap:wrap;gap:10px 22px;margin-top:10px}
+.side:empty{display:none}
+.st{font-size:.75rem;color:var(--muted);margin-bottom:3px}
+.sv{font:600 .95rem "JetBrains Mono",monospace}
+.chips2{display:flex;flex-wrap:wrap;gap:4px}
+.chips2 span{font:500 .78rem "JetBrains Mono",monospace;padding:3px 8px;border-radius:6px;background:color-mix(in srgb,var(--c) 18%,var(--paper));border:1px solid color-mix(in srgb,var(--c) 40%,transparent)}
+/* arrays */
+.va{--cw:44px;--gap:6px;display:inline-block;min-width:100%}
+.rowWrap{display:flex;align-items:flex-start}
+.rowWrap+.rowWrap{margin-top:24px}
+.rlab{width:74px;flex:none;font-size:.72rem;color:var(--muted);padding:13px 8px 0 0;text-align:right}
+.cells{position:relative;display:flex;gap:var(--gap);align-items:center}
+.cell{width:var(--cw);height:44px;flex:none;border:2px solid var(--line);border-radius:9px;display:flex;align-items:center;justify-content:center;background:var(--paper);font:600 .9rem "JetBrains Mono",monospace;position:relative;transition:background .3s,border-color .3s,opacity .3s,transform .3s,color .3s}
+.cell small{position:absolute;bottom:-19px;left:-4px;right:-4px;text-align:center;font:400 .66rem "IBM Plex Sans",sans-serif;color:var(--muted)}
+.cell.on,.gc.on{background:var(--c);border-color:var(--c);color:var(--onc);transform:translateY(-5px)}
+.cell.in{background:color-mix(in srgb,var(--c) 22%,var(--paper));border-color:var(--c)}
+.cell.ok{background:var(--easy);border-color:var(--easy);color:#fff}
+.cell.bad{background:var(--hard);border-color:var(--hard);color:#fff;animation:shake .35s}
+.cell.dim{opacity:.25}
+.cell.seen{border-style:dashed;color:var(--muted)}
+@keyframes shake{25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
+.win{position:absolute;top:-7px;height:58px;border:2.5px dashed var(--c);border-radius:12px;pointer-events:none;transition:left .4s ease,width .4s ease}
+.ptrs{position:relative;height:22px;margin-top:14px;transition:height .3s}
+.ptr{position:absolute;top:0;width:var(--cw);text-align:center;font:700 .72rem "JetBrains Mono",monospace;color:var(--c);transition:left .4s ease,top .3s,opacity .3s;white-space:nowrap}
+.ptr::before{content:"▲";display:block;font-size:.6rem;line-height:1}
+.larr{width:24px;flex:none;text-align:center;font-size:1.25rem;color:var(--c);font-weight:700}
+.ltail{font-size:.8rem;color:var(--c);font-weight:600;white-space:nowrap}
+/* grid */
+.vgrid{display:grid;gap:5px;justify-content:start;padding-left:4px}
+.gc{width:40px;height:40px;border:2px solid var(--line);border-radius:8px;display:flex;align-items:center;justify-content:center;font:600 .85rem "JetBrains Mono",monospace;background:var(--paper);transition:all .3s}
+.gc.in{background:color-mix(in srgb,var(--c) 22%,var(--paper));border-color:var(--c)}
+.gc.i0{background:var(--g0)}.gc.i1{background:var(--g1)}.gc.i2{background:var(--g2)}.gc.i3{background:var(--g3)}
+.gc.i0.on,.gc.i1.on,.gc.i2.on,.gc.i3.on{outline:3px solid var(--ink);color:var(--ink)}
+/* svg */
+.vsvg .e{stroke:var(--line);stroke-width:2.5;transition:stroke .3s,stroke-width .3s}
+.vsvg .e.on{stroke:var(--c);stroke-width:4.5}
+.vsvg .e.ok{stroke:var(--easy);stroke-width:4}
+.vsvg .e.bad{stroke:var(--hard);stroke-width:4;stroke-dasharray:6 4}
+.vsvg .ew{fill:var(--muted);font:600 12px "JetBrains Mono",monospace;text-anchor:middle}
+.vsvg .mk{fill:var(--muted)}
+.tn circle{fill:var(--paper);stroke:var(--line);stroke-width:2.5;transition:fill .3s,stroke .3s,opacity .3s}
+.tn text{fill:var(--ink);font:600 13px "JetBrains Mono",monospace;text-anchor:middle;dominant-baseline:central;transition:fill .3s}
+.tn .tag{fill:var(--c);font-size:11px;text-anchor:start}
+.tn.on circle{fill:var(--c);stroke:var(--ink);stroke-width:3}
+.tn.on text:not(.tag){fill:var(--onc)}
+.tn.in circle{fill:color-mix(in srgb,var(--c) 22%,var(--paper));stroke:var(--c)}
+.tn.ok circle{fill:var(--easy);stroke:var(--easy)}
+.tn.ok text:not(.tag){fill:#fff}
+.tn.dim{opacity:.22}
+.tn.seen circle{stroke:var(--c);stroke-dasharray:4 3}
+.tn.fl.on text:not(.tag){fill:var(--ink)}
+/* table */
+.vtab{border-collapse:separate;border-spacing:4px}
+.vtab th{font:600 .8rem "JetBrains Mono",monospace;color:var(--muted);width:36px;height:30px}
+.vtab td{width:38px;height:38px;text-align:center;border:2px solid var(--line);border-radius:7px;background:var(--paper);font:600 .85rem "JetBrains Mono",monospace;transition:all .3s}
+.vtab td.on{background:var(--c);border-color:var(--c);color:var(--onc)}
+.vtab td.in{background:color-mix(in srgb,var(--c) 22%,var(--paper));border-color:var(--c)}
+.vtab td.ok{background:var(--easy);border-color:var(--easy);color:#fff}
+/* intervals */
+.vi{min-width:440px}
+.irow{display:flex;align-items:center;margin:6px 0}
+.irow .rlab{padding-top:0}
+.itrack{position:relative;flex:1;height:26px}
+.ibar{position:absolute;top:2px;height:22px;border-radius:6px;background:color-mix(in srgb,var(--c) 22%,var(--paper));border:2px solid var(--c);font:600 .7rem "JetBrains Mono",monospace;display:flex;align-items:center;justify-content:center;transition:all .35s;overflow:hidden;white-space:nowrap}
+.ibar.on{background:var(--c);color:var(--onc)}
+.ibar.ok{background:var(--easy);border-color:var(--easy);color:#fff}
+.ibar.dim{opacity:.3}
+.ibar.in{border-style:dashed}
+.irow.out{border-top:1px dashed var(--line);padding-top:8px;margin-top:10px}
+.axis{height:18px;border-top:1px solid var(--muted)}
+.axis span{position:absolute;top:2px;transform:translateX(-50%);font-size:.68rem;color:var(--muted)}
+.empty{color:var(--muted);font-style:italic}
+.trap{margin-top:12px;font-size:.9rem;padding:9px 12px;border-radius:8px;background:color-mix(in srgb,var(--hard) 10%,var(--paper));border-left:4px solid var(--hard)}
+details.pat[open]>.body{animation:reveal .35s ease}
+@keyframes reveal{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
+</style>
+</head>
+<body>
+
+<header class="hero wrap">
+  <h1>The LeetCode pattern map</h1>
+  <p>35 patterns and 302 hand-picked problems, in the order that builds on itself. Open any pattern and press Play to watch the idea work step by step on a real example, then read the clues, the template, and the common trap. Tick problems as you solve them; star the ones you want to redo later. Progress stays in this browser.</p>
+  <div class="overall"><b id="ovNum">0 / 0</b><div class="bar"><i id="ovBar"></i></div><span id="ovPct" style="color:var(--muted)">0%</span></div>
+</header>
+
+<section class="wrap">
+  <div class="map" aria-label="Roadmap">
+    <h2>Your route, line by line</h2>
+    <p class="sub">Ride each line left to right. A station fills up as you solve its problems. Tap any station to jump to it.</p>
+    <div id="map"></div>
+  </div>
+</section>
+
+<div class="tools">
+  <div class="wrap">
+    <input type="search" id="q" placeholder="Search problem name, number, or pattern" aria-label="Search problems">
+    <button class="chip" data-f="all" aria-pressed="true">All</button>
+    <button class="chip" data-f="E" aria-pressed="false">Easy</button>
+    <button class="chip" data-f="M" aria-pressed="false">Medium</button>
+    <button class="chip" data-f="H" aria-pressed="false">Hard</button>
+    <button class="chip" id="hideSolved" aria-pressed="false">Hide solved</button>
+    <button class="chip" id="onlyStar" aria-pressed="false">★ Redo list</button>
+  </div>
+</div>
+
+<main class="wrap" id="main"></main>
+
+<section class="wrap">
+  <div class="ref" id="clues">
+    <h2>Pattern finder: read the question, spot the clue</h2>
+    <div class="tscroll"><table>
+      <tr><th>If the question says…</th><th>Think first of…</th></tr>
+      <tr><td>Sorted array, find a pair / triplet</td><td>Two pointers, or binary search</td></tr>
+      <tr><td>Longest / shortest contiguous subarray or substring with a condition</td><td>Sliding window</td></tr>
+      <tr><td>Count subarrays whose sum equals / divisible by K</td><td>Prefix sum + hash map</td></tr>
+      <tr><td>"Minimum possible maximum" or "maximum possible minimum"</td><td>Binary search on the answer</td></tr>
+      <tr><td>Next greater / smaller element, spans, histograms</td><td>Monotonic stack</td></tr>
+      <tr><td>Top K, K-th largest, K closest, running median</td><td>Heap (priority queue)</td></tr>
+      <tr><td>Numbers in range 1…n, find missing / duplicate in O(1) space</td><td>Cyclic sort</td></tr>
+      <tr><td>Linked list cycle, middle, or "find duplicate" with O(1) space</td><td>Fast and slow pointers</td></tr>
+      <tr><td>Overlapping ranges, meetings, bookings</td><td>Sort intervals, then merge or sweep</td></tr>
+      <tr><td>All combinations / permutations / subsets / arrangements</td><td>Backtracking</td></tr>
+      <tr><td>Grid of cells, islands, spreading, shortest steps</td><td>BFS (shortest) or DFS (count / flood)</td></tr>
+      <tr><td>Dependencies, prerequisites, ordering tasks</td><td>Topological sort</td></tr>
+      <tr><td>"Are these connected?", grouping, merging accounts</td><td>Union-Find (disjoint set)</td></tr>
+      <tr><td>Weighted edges, cheapest / fastest path</td><td>Dijkstra; with ≤ K stops use Bellman-Ford</td></tr>
+      <tr><td>Prefix lookups, autocomplete, many words at once</td><td>Trie</td></tr>
+      <tr><td>Count ways / min cost / max value, choices repeat</td><td>Dynamic programming</td></tr>
+      <tr><td>Two strings compared character by character</td><td>2D DP (LCS / edit distance family)</td></tr>
+      <tr><td>Pick items under a budget / target sum</td><td>Knapsack DP</td></tr>
+      <tr><td>Local best choice always leads to global best</td><td>Greedy (prove it with a small counter-example check)</td></tr>
+      <tr><td>Element appears once, XOR, powers of two</td><td>Bit manipulation</td></tr>
+    </table></div>
+  </div>
+
+  <div class="ref">
+    <h2>Input size tells you the speed you need</h2>
+    <p style="color:var(--muted);margin:0 0 10px">A computer does roughly 100 million simple steps per second. Read the constraint on n and work backwards.</p>
+    <div class="tscroll"><table>
+      <tr><th>n up to</th><th>Allowed speed (time complexity)</th><th>Usual pattern</th></tr>
+      <tr><td>10–12</td><td>n! or 2ⁿ·n</td><td>Backtracking, permutations</td></tr>
+      <tr><td>20–25</td><td>2ⁿ</td><td>Subsets, bitmask DP</td></tr>
+      <tr><td>100–500</td><td>n³</td><td>Interval DP, Floyd–Warshall</td></tr>
+      <tr><td>1,000–5,000</td><td>n²</td><td>2D DP, nested loops</td></tr>
+      <tr><td>100,000–1,000,000</td><td>n log n or n</td><td>Sorting, heap, binary search, two pointers, sliding window, hashing</td></tr>
+      <tr><td>10⁹ and above</td><td>log n or O(1)</td><td>Binary search on answer, math</td></tr>
+    </table></div>
+  </div>
+
+  <div class="ref">
+    <h2>How to practise so it actually sticks</h2>
+    <ol class="steps">
+      <li><b>Learn the pattern first.</b> Read the idea and template, then solve the first 3 problems of that pattern back to back. Same tool, three uses, and your brain files it.</li>
+      <li><b>Give each problem 25 minutes.</b> Stuck after that? Read the hint or solution, understand why it works, close it, and code it yourself from scratch.</li>
+      <li><b>Say it before you code it.</b> Write one line: "This is sliding window because the answer is a contiguous substring." Naming the pattern is the skill interviews test.</li>
+      <li><b>Star anything you needed help on.</b> Redo starred problems after 1 day, 3 days, and 7 days (spaced repetition). If you solve it cleanly on day 7, unstar it.</li>
+      <li><b>Mix it up after Line 2.</b> Each week, solve 5 random problems from finished patterns without looking at the pattern name. This is what turns "I know the patterns" into "I can spot the pattern".</li>
+      <li><b>Weekly contest from week 6.</b> Timed pressure is a separate skill. Even solving 2 of 4 is fine early on.</li>
+    </ol>
+    <p style="margin:14px 0 0;color:var(--muted)">Pace guide: 2–3 problems a day finishes the whole map in about 14–16 weeks. An honest note: no list guarantees 90%, but finishing this map and redoing your starred problems until they're clean covers the patterns behind the vast majority of interview and contest questions up to medium-hard.</p>
+  </div>
+</section>
+
+<footer class="wrap">
+  <button class="resetBtn" id="reset">Clear all progress</button>
+  <button class="resetBtn" id="exportBtn" style="margin-left:8px">Export progress (backup)</button>
+  <button class="resetBtn" id="importBtn" style="margin-left:8px">Import progress</button>
+  <input type="file" id="importFile" accept="application/json,.json" style="display:none">
+  <span id="saveMsg" aria-live="polite"></span>
+  <div style="margin-top:8px">Links open the problem on leetcode.com. Progress is saved automatically in this browser (localStorage + IndexedDB + cookie). If you open the file from a different browser, device, or a sandboxed preview, use Export / Import to carry it over.</div>
+</footer>
+
+<script>
+const PHASES = [
+  {id:1, name:"Line 1: Foundations", sub:"Weeks 1–4", c:"var(--p1)", blurb:"Arrays, strings and the moves every other pattern reuses."},
+  {id:2, name:"Line 2: Structures", sub:"Weeks 5–8", c:"var(--p2)", blurb:"Lists, trees, heaps and intervals."},
+  {id:3, name:"Line 3: Search & graphs", sub:"Weeks 9–11", c:"var(--p3)", blurb:"Exploring every option, and moving through networks."},
+  {id:4, name:"Line 4: DP & specialist", sub:"Weeks 12–16", c:"var(--p4)", blurb:"Dynamic programming, bits, maths, design, and advanced trees."}
+];
+
+// problem: [number, title, difficulty, optionalSlug]
+const P = [
+{id:"hash",ph:1,name:"Lookup table",term:"Arrays & Hashing",
+ an:"Like a library index card: instead of walking every shelf to find a book, you look up its exact spot in one step.",
+ spot:["\"Have I seen this before?\"","Count how often things appear","Group items that share a key (anagrams, same sum)","Brute force is two nested loops"],
+ tpl:`seen = {}            # value -> index / count
+for i, x in enumerate(nums):
+    need = target - x
+    if need in seen: return [seen[need], i]
+    seen[x] = i`,
+ cx:"Usually O(n) time, O(n) extra space. You trade memory for speed.",
+ pr:[[217,"Contains Duplicate","E"],[242,"Valid Anagram","E"],[1,"Two Sum","E"],[169,"Majority Element","E"],[49,"Group Anagrams","M"],[347,"Top K Frequent Elements","M"],[238,"Product of Array Except Self","M"],[36,"Valid Sudoku","M"],[128,"Longest Consecutive Sequence","M"],[31,"Next Permutation","M"],[179,"Largest Number","M"],[380,"Insert Delete GetRandom O(1)","M","insert-delete-getrandom-o1"]]},
+
+{id:"tp",ph:1,name:"Two fingers",term:"Two Pointers",
+ an:"Two people searching a sorted bookshelf from both ends, walking towards each other. Each step rules out a whole row of possibilities.",
+ spot:["Array or string is sorted (or you can sort it)","Find a pair / triplet with a target sum","Palindromes, reversing in place","Remove or move elements in place"],
+ tpl:`l, r = 0, len(a) - 1
+while l < r:
+    s = a[l] + a[r]
+    if s == target: return [l, r]
+    if s < target: l += 1   # need bigger
+    else: r -= 1            # need smaller`,
+ cx:"O(n) after an O(n log n) sort. O(1) extra space.",
+ pr:[[125,"Valid Palindrome","E"],[26,"Remove Duplicates from Sorted Array","E"],[283,"Move Zeroes","E"],[88,"Merge Sorted Array","E"],[167,"Two Sum II - Input Array Is Sorted","M"],[15,"3Sum","M"],[16,"3Sum Closest","M"],[18,"4Sum","M"],[11,"Container With Most Water","M"],[75,"Sort Colors","M"],[42,"Trapping Rain Water","H"]]},
+
+{id:"sw",ph:1,name:"Moving frame",term:"Sliding Window",
+ an:"A train window: as the train moves, one view enters on the right and one leaves on the left. You never re-look at the whole landscape.",
+ spot:["Contiguous subarray or substring","Longest / shortest / count with a condition","\"At most K distinct\", \"window of size K\""],
+ tpl:`l = 0; best = 0; state = {}
+for r, x in enumerate(s):
+    add x to state
+    while window is invalid:     # shrink from left
+        remove s[l] from state; l += 1
+    best = max(best, r - l + 1)
+# exactly K = atMost(K) - atMost(K-1)`,
+ cx:"O(n): each element enters and leaves the window once.",
+ pr:[[643,"Maximum Average Subarray I","E"],[121,"Best Time to Buy and Sell Stock","E"],[3,"Longest Substring Without Repeating Characters","M"],[209,"Minimum Size Subarray Sum","M"],[424,"Longest Repeating Character Replacement","M"],[567,"Permutation in String","M"],[438,"Find All Anagrams in a String","M"],[1004,"Max Consecutive Ones III","M"],[904,"Fruit Into Baskets","M"],[1248,"Count Number of Nice Subarrays","M"],[76,"Minimum Window Substring","H"],[992,"Subarrays with K Different Integers","H"]]},
+
+{id:"ps",ph:1,name:"Running total",term:"Prefix Sum",
+ an:"A car's odometer: distance between two towns = reading at town B minus reading at town A. No need to re-drive the road.",
+ spot:["Many \"sum of range i..j\" questions","Count subarrays with sum = K (with negatives, so window fails)","Equal 0s and 1s, divisible by K"],
+ tpl:`count = {0: 1}; run = 0; ans = 0
+for x in nums:
+    run += x
+    ans += count.get(run - k, 0)   # earlier prefix that makes sum k
+    count[run] = count.get(run, 0) + 1`,
+ cx:"O(n) build, O(1) per range query.",
+ pr:[[303,"Range Sum Query - Immutable","E"],[724,"Find Pivot Index","E"],[560,"Subarray Sum Equals K","M"],[974,"Subarray Sums Divisible by K","M"],[525,"Contiguous Array","M"],[523,"Continuous Subarray Sum","M"],[304,"Range Sum Query 2D - Immutable","M"]]},
+
+{id:"kad",ph:1,name:"Best streak",term:"Kadane's Algorithm",
+ an:"A gambler deciding each round: keep riding the current winning streak, or walk away and start fresh at this table.",
+ spot:["Maximum / minimum sum of a contiguous subarray","\"Best profit\" over a sequence"],
+ tpl:`cur = best = nums[0]
+for x in nums[1:]:
+    cur = max(x, cur + x)   # extend or restart
+    best = max(best, cur)`,
+ cx:"O(n) time, O(1) space.",
+ pr:[[53,"Maximum Subarray","M"],[152,"Maximum Product Subarray","M"],[918,"Maximum Sum Circular Subarray","M"]]},
+
+{id:"mat",ph:1,name:"Grid walking",term:"Matrix Traversal",
+ an:"Mowing a lawn in rings from the outside in, or rotating a photo on your phone.",
+ spot:["Spiral / diagonal order","Rotate or transpose in place","Mark rows and columns"],
+ tpl:`top, bot, left, right = 0, R-1, 0, C-1
+while top <= bot and left <= right:
+    walk top row, right col, bottom row, left col
+    shrink the four borders`,
+ cx:"O(R·C).",
+ pr:[[54,"Spiral Matrix","M"],[48,"Rotate Image","M"],[73,"Set Matrix Zeroes","M"],[240,"Search a 2D Matrix II","M"]]},
+
+{id:"stk",ph:1,name:"Plate pile",term:"Stack",
+ an:"A pile of plates: the last one you put on is the first one you take off. Perfect for anything nested, like brackets.",
+ spot:["Matching brackets","Undo / nested structure / decode \"3[a2[c]]\"","Evaluate expressions"],
+ tpl:`st = []
+for ch in s:
+    if ch is opening: st.append(ch)
+    else:
+        if not st or not matches(st.pop(), ch): return False
+return not st`,
+ cx:"O(n) time, O(n) space.",
+ pr:[[20,"Valid Parentheses","E"],[155,"Min Stack","M"],[150,"Evaluate Reverse Polish Notation","M"],[71,"Simplify Path","M"],[394,"Decode String","M"],[227,"Basic Calculator II","M"],[224,"Basic Calculator","H"],[32,"Longest Valid Parentheses","H"]]},
+
+{id:"bs",ph:1,name:"Halving the search",term:"Binary Search",
+ an:"Guessing a number between 1 and 1,000 with \"higher / lower\" hints: 10 guesses max, because each guess halves what's left.",
+ spot:["Sorted or rotated-sorted input","Find first / last position","Anything where yes/no flips once (monotonic)"],
+ tpl:`lo, hi = 0, len(a) - 1
+while lo <= hi:
+    mid = (lo + hi) // 2
+    if a[mid] == t: return mid
+    if a[mid] < t: lo = mid + 1
+    else: hi = mid - 1
+return lo   # insert position`,
+ cx:"O(log n).",
+ pr:[[704,"Binary Search","E"],[35,"Search Insert Position","E"],[74,"Search a 2D Matrix","M"],[34,"Find First and Last Position of Element in Sorted Array","M"],[33,"Search in Rotated Sorted Array","M"],[153,"Find Minimum in Rotated Sorted Array","M"],[162,"Find Peak Element","M"],[981,"Time Based Key-Value Store","M"],[4,"Median of Two Sorted Arrays","H"]]},
+
+{id:"ll",ph:2,name:"Chain of boxes",term:"Linked List (reversal, dummy node)",
+ an:"A treasure hunt where each clue tells you where the next one is. To reverse it you re-point each clue at the previous spot.",
+ spot:["Reverse all or part of a list","Merge / reorder / delete Nth from end","Add numbers stored as lists"],
+ tpl:`prev, cur = None, head
+while cur:
+    nxt = cur.next
+    cur.next = prev
+    prev, cur = cur, nxt
+return prev
+# Tip: a dummy node before head removes edge cases`,
+ cx:"O(n) time, O(1) space.",
+ pr:[[206,"Reverse Linked List","E"],[21,"Merge Two Sorted Lists","E"],[160,"Intersection of Two Linked Lists","E"],[234,"Palindrome Linked List","E"],[19,"Remove Nth Node From End of List","M"],[2,"Add Two Numbers","M"],[143,"Reorder List","M"],[92,"Reverse Linked List II","M"],[138,"Copy List with Random Pointer","M"],[148,"Sort List","M"],[25,"Reverse Nodes in k-Group","H"]]},
+
+{id:"fs",ph:2,name:"Hare and tortoise",term:"Fast & Slow Pointers",
+ an:"Two runners on a circular track: if there's a loop, the faster one will eventually lap the slower one.",
+ spot:["Detect a cycle","Find the middle","Duplicate number with O(1) space"],
+ tpl:`slow = fast = head
+while fast and fast.next:
+    slow = slow.next
+    fast = fast.next.next
+    if slow == fast: return True   # cycle
+# cycle start: reset one pointer to head, move both 1 step`,
+ cx:"O(n) time, O(1) space.",
+ pr:[[141,"Linked List Cycle","E"],[876,"Middle of the Linked List","E"],[202,"Happy Number","E"],[142,"Linked List Cycle II","M"],[287,"Find the Duplicate Number","M"]]},
+
+{id:"cyc",ph:2,name:"Everyone to their seat",term:"Cyclic Sort",
+ an:"Numbered guests 1…n entering a hall of numbered chairs: keep swapping each guest into their own chair. Empty chairs = missing guests.",
+ spot:["Numbers are in range 1..n or 0..n","Find missing / duplicate numbers","Must use O(1) extra space"],
+ tpl:`i = 0
+while i < n:
+    j = nums[i] - 1
+    if 0 <= j < n and nums[i] != nums[j]:
+        nums[i], nums[j] = nums[j], nums[i]
+    else: i += 1
+# then scan: index where nums[i] != i+1`,
+ cx:"O(n) time, O(1) space.",
+ pr:[[268,"Missing Number","E"],[448,"Find All Numbers Disappeared in an Array","E"],[645,"Set Mismatch","E"],[442,"Find All Duplicates in an Array","M"],[41,"First Missing Positive","H"]]},
+
+{id:"mono",ph:2,name:"Queue of taller people",term:"Monotonic Stack / Deque",
+ an:"People queueing for a photo: anyone shorter standing behind a taller newcomer can never be seen, so they step out of line.",
+ spot:["Next greater / smaller element","How many days until warmer","Largest rectangle, stock span","Max of every window of size K (deque)"],
+ tpl:`res = [0]*n; st = []          # holds indices, values decreasing
+for i, x in enumerate(a):
+    while st and a[st[-1]] < x:
+        j = st.pop(); res[j] = i - j   # x is j's next greater
+    st.append(i)`,
+ cx:"O(n): every index is pushed and popped once.",
+ pr:[[496,"Next Greater Element I","E"],[739,"Daily Temperatures","M"],[503,"Next Greater Element II","M"],[901,"Online Stock Span","M"],[853,"Car Fleet","M"],[402,"Remove K Digits","M"],[907,"Sum of Subarray Minimums","M"],[239,"Sliding Window Maximum","H"],[84,"Largest Rectangle in Histogram","H"],[85,"Maximal Rectangle","H"]]},
+
+{id:"bsa",ph:2,name:"Guess the answer",term:"Binary Search on Answer",
+ an:"Finding the slowest speed that still gets you to the station on time: try 50 km/h, too late? Try 75. Too early? Try 62. You binary-search the speed, not the array.",
+ spot:["\"Minimum capacity / speed / days such that…\"","Minimise the maximum or maximise the minimum","You can easily check \"is X enough?\""],
+ tpl:`lo, hi = smallest_possible, largest_possible
+while lo < hi:
+    mid = (lo + hi) // 2
+    if feasible(mid): hi = mid      # try smaller
+    else: lo = mid + 1
+return lo`,
+ cx:"O(n · log(range)).",
+ pr:[[69,"Sqrt(x)","E","sqrtx"],[875,"Koko Eating Bananas","M"],[1011,"Capacity To Ship Packages Within D Days","M"],[1283,"Find the Smallest Divisor Given a Threshold","M"],[1482,"Minimum Number of Days to Make m Bouquets","M"],[410,"Split Array Largest Sum","H"]]},
+
+{id:"dfs",ph:2,name:"Tree deep-dive",term:"Tree DFS (recursion)",
+ an:"A manager asking each team lead \"what's your team's total?\" Each lead asks their own reports, then adds it up and answers upward.",
+ spot:["Height, diameter, balanced, path sums","Answer for a node depends on its children","Build a tree from traversals"],
+ tpl:`def dfs(node):
+    if not node: return base_value
+    L = dfs(node.left)
+    R = dfs(node.right)
+    # update global answer using L, R, node.val if needed
+    return combine(L, R, node.val)`,
+ cx:"O(n) time, O(height) stack space.",
+ pr:[[104,"Maximum Depth of Binary Tree","E"],[226,"Invert Binary Tree","E"],[100,"Same Tree","E"],[101,"Symmetric Tree","E"],[572,"Subtree of Another Tree","E"],[543,"Diameter of Binary Tree","E"],[110,"Balanced Binary Tree","E"],[112,"Path Sum","E"],[113,"Path Sum II","M"],[437,"Path Sum III","M"],[1448,"Count Good Nodes in Binary Tree","M"],[236,"Lowest Common Ancestor of a Binary Tree","M"],[105,"Construct Binary Tree from Preorder and Inorder Traversal","M"],[114,"Flatten Binary Tree to Linked List","M"],[124,"Binary Tree Maximum Path Sum","H"],[297,"Serialize and Deserialize Binary Tree","H"]]},
+
+{id:"bfs",ph:2,name:"Tree floor-by-floor",term:"Tree BFS (level order)",
+ an:"Visiting a building floor by floor, finishing every room on floor 1 before taking the stairs.",
+ spot:["Anything \"per level\"","Right / left side view","Zigzag, width, nodes at distance K"],
+ tpl:`q = deque([root])
+while q:
+    level = []
+    for _ in range(len(q)):
+        node = q.popleft(); level.append(node.val)
+        if node.left: q.append(node.left)
+        if node.right: q.append(node.right)
+    res.append(level)`,
+ cx:"O(n) time, O(width) space.",
+ pr:[[637,"Average of Levels in Binary Tree","E"],[102,"Binary Tree Level Order Traversal","M"],[199,"Binary Tree Right Side View","M"],[103,"Binary Tree Zigzag Level Order Traversal","M"],[116,"Populating Next Right Pointers in Each Node","M"],[662,"Maximum Width of Binary Tree","M"],[863,"All Nodes Distance K in Binary Tree","M"],[987,"Vertical Order Traversal of a Binary Tree","H"]]},
+
+{id:"bst",ph:2,name:"Sorted tree",term:"Binary Search Tree",
+ an:"A decision tree where \"smaller\" always goes left and \"bigger\" always goes right, so an in-order walk reads everything in sorted order.",
+ spot:["Tree is a BST","Validate, find K-th smallest, LCA in BST","In-order traversal = sorted list"],
+ tpl:`def valid(node, lo, hi):
+    if not node: return True
+    if not (lo < node.val < hi): return False
+    return valid(node.left, lo, node.val) and \\
+           valid(node.right, node.val, hi)`,
+ cx:"O(height) per search; O(n) for full traversal.",
+ pr:[[700,"Search in a Binary Search Tree","E"],[108,"Convert Sorted Array to Binary Search Tree","E"],[98,"Validate Binary Search Tree","M"],[230,"Kth Smallest Element in a BST","M"],[235,"Lowest Common Ancestor of a Binary Search Tree","M"],[701,"Insert into a Binary Search Tree","M"],[450,"Delete Node in a BST","M"],[173,"Binary Search Tree Iterator","M"]]},
+
+{id:"heap",ph:2,name:"Priority line",term:"Heap / Priority Queue (Top K, Two Heaps, K-way merge)",
+ an:"A hospital emergency room: the most urgent patient is always seen next, no matter who arrived first.",
+ spot:["K-th largest / smallest, top K, K closest","Running median (two heaps)","Merge K sorted things","Always pick the current best"],
+ tpl:`h = []
+for x in nums:
+    heappush(h, x)
+    if len(h) > k: heappop(h)   # keep k largest
+return h[0]                     # k-th largest
+# median: max-heap for low half, min-heap for high half`,
+ cx:"O(n log k).",
+ pr:[[703,"Kth Largest Element in a Stream","E"],[1046,"Last Stone Weight","E"],[215,"Kth Largest Element in an Array","M"],[973,"K Closest Points to Origin","M"],[378,"Kth Smallest Element in a Sorted Matrix","M"],[373,"Find K Pairs with Smallest Sums","M"],[621,"Task Scheduler","M"],[767,"Reorganize String","M"],[355,"Design Twitter","M"],[23,"Merge k Sorted Lists","H"],[295,"Find Median from Data Stream","H"],[480,"Sliding Window Median","H"],[502,"IPO","H"],[632,"Smallest Range Covering Elements from K Lists","H"]]},
+
+{id:"int",ph:2,name:"Time slots",term:"Intervals & Sweep Line",
+ an:"Booking meeting rooms: sort every booking by start time, then any booking that starts before the previous one ends overlaps it.",
+ spot:["Pairs of [start, end]","Merge, insert, remove overlaps","How many rooms / cars at once (sweep line)"],
+ tpl:`intervals.sort(key=lambda x: x[0])
+out = [intervals[0]]
+for s, e in intervals[1:]:
+    if s <= out[-1][1]: out[-1][1] = max(out[-1][1], e)
+    else: out.append([s, e])
+# sweep: +1 at start, -1 at end, sort events, track running count`,
+ cx:"O(n log n) for the sort.",
+ pr:[[56,"Merge Intervals","M"],[57,"Insert Interval","M"],[435,"Non-overlapping Intervals","M"],[452,"Minimum Number of Arrows to Burst Balloons","M"],[986,"Interval List Intersections","M"],[729,"My Calendar I","M"],[1094,"Car Pooling","M"],[1851,"Minimum Interval to Include Each Query","H"],[2402,"Meeting Rooms III","H"]]},
+
+{id:"bt",ph:3,name:"Try, then undo",term:"Backtracking",
+ an:"Solving a maze with chalk: walk a path, and at a dead end rub out your last chalk mark and try the next turn.",
+ spot:["Generate ALL subsets, permutations, combinations","Place things with rules (N-Queens, Sudoku)","n is small (≤ 15–20)"],
+ tpl:`def bt(start, path):
+    if is_complete(path): res.append(path[:]); return
+    for i in range(start, n):
+        if i > start and a[i] == a[i-1]: continue  # skip dup
+        path.append(a[i])       # choose
+        bt(i + 1, path)         # explore
+        path.pop()              # un-choose`,
+ cx:"Exponential: O(2ⁿ) subsets, O(n!) permutations. That's expected.",
+ pr:[[78,"Subsets","M"],[90,"Subsets II","M"],[46,"Permutations","M"],[47,"Permutations II","M"],[77,"Combinations","M"],[39,"Combination Sum","M"],[40,"Combination Sum II","M"],[17,"Letter Combinations of a Phone Number","M"],[22,"Generate Parentheses","M"],[79,"Word Search","M"],[131,"Palindrome Partitioning","M"],[93,"Restore IP Addresses","M"],[51,"N-Queens","H"],[37,"Sudoku Solver","H"]]},
+
+{id:"trie",ph:3,name:"Letter tree",term:"Trie (Prefix Tree)",
+ an:"Your phone's autocomplete: every word that starts with \"ca\" shares the same first two branches.",
+ spot:["Prefix search, autocomplete","Search many words in a grid at once","Max XOR of pairs (bitwise trie)"],
+ tpl:`class Node: children = {}; end = False
+def insert(word):
+    cur = root
+    for ch in word:
+        cur = cur.children.setdefault(ch, Node())
+    cur.end = True`,
+ cx:"O(length of word) per insert / search.",
+ pr:[[208,"Implement Trie (Prefix Tree)","M"],[211,"Design Add and Search Words Data Structure","M"],[648,"Replace Words","M"],[1268,"Search Suggestions System","M"],[421,"Maximum XOR of Two Numbers in an Array","M"],[212,"Word Search II","H"]]},
+
+{id:"gr",ph:3,name:"Map exploration",term:"Graph BFS / DFS",
+ an:"Ink dropped on paper spreading to every connected square (DFS flood fill), or ripples in a pond spreading one ring at a time (BFS, which gives shortest steps).",
+ spot:["Grid of 0/1 or characters","Islands, regions, provinces","Minimum steps (unweighted) → BFS","Spreading from many sources at once → multi-source BFS"],
+ tpl:`def dfs(r, c):
+    if out of bounds or grid[r][c] != '1': return
+    grid[r][c] = '#'                # mark visited
+    for dr, dc in [(1,0),(-1,0),(0,1),(0,-1)]:
+        dfs(r+dr, c+dc)
+# BFS: queue of all sources, pop level by level, count steps`,
+ cx:"O(V + E), for grids O(R·C).",
+ pr:[[733,"Flood Fill","E"],[200,"Number of Islands","M"],[695,"Max Area of Island","M"],[547,"Number of Provinces","M"],[133,"Clone Graph","M"],[841,"Keys and Rooms","M"],[994,"Rotting Oranges","M"],[542,"01 Matrix","M"],[1091,"Shortest Path in Binary Matrix","M"],[130,"Surrounded Regions","M"],[1020,"Number of Enclaves","M"],[417,"Pacific Atlantic Water Flow","M"],[785,"Is Graph Bipartite?","M"],[127,"Word Ladder","H"]]},
+
+{id:"topo",ph:3,name:"Task ordering",term:"Topological Sort (Kahn's BFS)",
+ an:"Planning a course timetable: you can only take Algorithms after Programming 101. Start with the courses that need nothing, and unlock the rest as you go.",
+ spot:["Prerequisites, dependencies, build order","\"Is there a cycle in a directed graph?\"","Order letters / recipes / tasks"],
+ tpl:`indeg = count incoming edges for each node
+q = deque(nodes with indeg 0); order = []
+while q:
+    u = q.popleft(); order.append(u)
+    for v in adj[u]:
+        indeg[v] -= 1
+        if indeg[v] == 0: q.append(v)
+# len(order) < n  → cycle exists`,
+ cx:"O(V + E).",
+ pr:[[207,"Course Schedule","M"],[210,"Course Schedule II","M"],[802,"Find Eventual Safe States","M"],[2115,"Find All Possible Recipes from Given Supplies","M"],[310,"Minimum Height Trees","M"],[329,"Longest Increasing Path in a Matrix","H"]]},
+
+{id:"uf",ph:3,name:"Friend groups",term:"Union-Find (Disjoint Set Union)",
+ an:"At a wedding, every guest points to a \"group leader\". Two groups merge when their leaders shake hands; asking \"same group?\" means comparing leaders.",
+ spot:["Dynamic connectivity: connect, then ask \"connected?\"","Count components as edges arrive","Find the redundant edge"],
+ tpl:`parent = list(range(n))
+def find(x):
+    while parent[x] != x:
+        parent[x] = parent[parent[x]]   # path compression
+        x = parent[x]
+    return x
+def union(a, b):
+    ra, rb = find(a), find(b)
+    if ra == rb: return False           # already connected
+    parent[ra] = rb; return True`,
+ cx:"Almost O(1) per operation.",
+ pr:[[684,"Redundant Connection","M"],[990,"Satisfiability of Equality Equations","M"],[1319,"Number of Operations to Make Network Connected","M"],[721,"Accounts Merge","M"],[947,"Most Stones Removed with Same Row or Column","M"],[1579,"Remove Max Number of Edges to Keep Graph Fully Traversable","H"]]},
+
+{id:"sp",ph:3,name:"Cheapest route",term:"Shortest Path & Minimum Spanning Tree",
+ an:"Google Maps: always expand the closest unvisited junction first (Dijkstra). To lay the cheapest cable connecting every town, keep adding the cheapest safe link (Prim / Kruskal).",
+ spot:["Weighted edges, min cost / time / effort","At most K stops → Bellman-Ford","Connect all points cheaply → MST","All pairs, n ≤ 100 → Floyd–Warshall"],
+ tpl:`dist = {src: 0}; pq = [(0, src)]
+while pq:
+    d, u = heappop(pq)
+    if d > dist.get(u, inf): continue
+    for v, w in adj[u]:
+        if d + w < dist.get(v, inf):
+            dist[v] = d + w; heappush(pq, (d + w, v))`,
+ cx:"Dijkstra O(E log V); Bellman-Ford O(V·E); Floyd O(V³).",
+ pr:[[743,"Network Delay Time","M"],[1514,"Path with Maximum Probability","M"],[1631,"Path With Minimum Effort","M"],[787,"Cheapest Flights Within K Stops","M"],[1334,"Find the City With the Smallest Number of Neighbors at a Threshold Distance","M"],[1584,"Min Cost to Connect All Points","M"],[778,"Swim in Rising Water","H"],[332,"Reconstruct Itinerary","H"]]},
+
+{id:"gdy",ph:3,name:"Best move now",term:"Greedy",
+ an:"Giving change with the biggest coins first. It works for rupees, but not for every coin system, so always test a tricky example before trusting greedy.",
+ spot:["Sorting then taking the best option works","Jump / reach problems","Scheduling, assigning, partitioning"],
+ tpl:`far = 0
+for i, x in enumerate(nums):
+    if i > far: return False      # can't reach i
+    far = max(far, i + x)
+return True`,
+ cx:"Usually O(n) or O(n log n).",
+ pr:[[455,"Assign Cookies","E"],[122,"Best Time to Buy and Sell Stock II","M"],[55,"Jump Game","M"],[45,"Jump Game II","M"],[134,"Gas Station","M"],[763,"Partition Labels","M"],[846,"Hand of Straights","M"],[1899,"Merge Triplets to Form Target Triplet","M"],[678,"Valid Parenthesis String","M"],[406,"Queue Reconstruction by Height","M"],[135,"Candy","H"]]},
+
+{id:"dp1",ph:4,name:"Remember small answers",term:"1D Dynamic Programming",
+ an:"Climbing stairs: the ways to reach step 10 = ways to step 9 + ways to step 8. Write each answer down once so you never recompute it.",
+ spot:["Count ways, min cost, max value","Choice at each index (take / skip)","Brute force recursion repeats the same sub-calls"],
+ tpl:`# 1) define dp[i]  2) recurrence  3) base case  4) order
+dp = [0] * (n + 1)
+dp[0], dp[1] = base0, base1
+for i in range(2, n + 1):
+    dp[i] = max(dp[i-1], dp[i-2] + nums[i-1])   # house robber
+return dp[n]`,
+ cx:"Usually O(n) or O(n²) time; space often reducible to O(1).",
+ pr:[[509,"Fibonacci Number","E"],[70,"Climbing Stairs","E"],[746,"Min Cost Climbing Stairs","E"],[198,"House Robber","M"],[213,"House Robber II","M"],[740,"Delete and Earn","M"],[91,"Decode Ways","M"],[322,"Coin Change","M"],[279,"Perfect Squares","M"],[139,"Word Break","M"],[300,"Longest Increasing Subsequence","M"],[673,"Number of Longest Increasing Subsequence","M"],[5,"Longest Palindromic Substring","M"],[647,"Palindromic Substrings","M"],[354,"Russian Doll Envelopes","H"]]},
+
+{id:"dp2",ph:4,name:"Table of answers",term:"2D DP (grids & two strings)",
+ an:"Spell-check suggestions: to turn \"kitten\" into \"sitting\", fill a table where each cell is the cheapest edit for two prefixes.",
+ spot:["Grid paths with min cost / count","Two strings: common subsequence, edits, matching","Palindromic subsequence"],
+ tpl:`dp = [[0]*(m+1) for _ in range(n+1)]
+for i in range(1, n+1):
+    for j in range(1, m+1):
+        if a[i-1] == b[j-1]: dp[i][j] = dp[i-1][j-1] + 1
+        else: dp[i][j] = max(dp[i-1][j], dp[i][j-1])
+return dp[n][m]      # LCS`,
+ cx:"O(n·m) time; space often O(m).",
+ pr:[[62,"Unique Paths","M"],[63,"Unique Paths II","M"],[64,"Minimum Path Sum","M"],[120,"Triangle","M"],[931,"Minimum Falling Path Sum","M"],[221,"Maximal Square","M"],[1143,"Longest Common Subsequence","M"],[583,"Delete Operation for Two Strings","M"],[72,"Edit Distance","M"],[516,"Longest Palindromic Subsequence","M"],[97,"Interleaving String","M"],[115,"Distinct Subsequences","H"],[10,"Regular Expression Matching","H"],[44,"Wildcard Matching","H"]]},
+
+{id:"knap",ph:4,name:"Packing a bag",term:"Knapsack DP (0/1 and unbounded)",
+ an:"Packing a 20 kg suitcase: for each item decide take or leave. If the shop has unlimited copies (coins), you can take the same item again.",
+ spot:["Reach a target sum using items","Split into two equal halves","Count ways to make an amount"],
+ tpl:`dp = [False] * (target + 1); dp[0] = True
+for x in nums:
+    for s in range(target, x - 1, -1):   # backwards = 0/1 (use once)
+        dp[s] = dp[s] or dp[s - x]
+# forwards loop over s = unbounded (reuse items)`,
+ cx:"O(n · target).",
+ pr:[[416,"Partition Equal Subset Sum","M"],[494,"Target Sum","M"],[1049,"Last Stone Weight II","M"],[474,"Ones and Zeroes","M"],[518,"Coin Change II","M"],[377,"Combination Sum IV","M"]]},
+
+{id:"sm",ph:4,name:"Mood states",term:"State-Machine DP (stock problems)",
+ an:"Each day you're in one mood: holding a share, not holding, or resting after a sale. Track the best money for each mood every day.",
+ spot:["Buy / sell with limits, cooldown, fees","A few named states that switch each step"],
+ tpl:`hold, free = -inf, 0
+for p in prices:
+    hold = max(hold, free - p)       # buy or keep holding
+    free = max(free, hold + p - fee) # sell or keep waiting
+return free`,
+ cx:"O(n · number of states).",
+ pr:[[309,"Best Time to Buy and Sell Stock with Cooldown","M"],[714,"Best Time to Buy and Sell Stock with Transaction Fee","M"],[123,"Best Time to Buy and Sell Stock III","H"],[188,"Best Time to Buy and Sell Stock IV","H"]]},
+
+{id:"idp",ph:4,name:"Split point",term:"Interval / Partition DP",
+ an:"Cutting a stick: the best cost for piece [i..j] = try every cut point k in between, and add the best cost of the two halves.",
+ spot:["Answer for range i..j depends on smaller ranges","\"Burst\", \"merge\", \"cut\", \"triangulate\"","n is ≤ 500"],
+ tpl:`for length in range(2, n + 1):
+    for i in range(0, n - length + 1):
+        j = i + length - 1
+        dp[i][j] = min(dp[i][k] + dp[k+1][j] + cost(i, j)
+                       for k in range(i, j))`,
+ cx:"O(n³).",
+ pr:[[1043,"Partition Array for Maximum Sum","M"],[375,"Guess Number Higher or Lower II","M"],[1039,"Minimum Score Triangulation of Polygon","M"],[132,"Palindrome Partitioning II","H"],[1547,"Minimum Cost to Cut a Stick","H"],[312,"Burst Balloons","H"]]},
+
+{id:"bm",ph:4,name:"Switchboard of choices",term:"Bitmask DP",
+ an:"A row of light switches, one per item: the pattern of on/off lights records exactly which items you've already used.",
+ spot:["n ≤ 20 and you need \"which items are used\"","Visit all nodes, assign all tasks"],
+ tpl:`dp = {0: base}
+for mask in range(1 << n):
+    for i in range(n):
+        if not mask & (1 << i):          # item i unused
+            new = mask | (1 << i)
+            dp[new] = best(dp[new], dp[mask] + gain(i))`,
+ cx:"O(2ⁿ · n).",
+ pr:[[526,"Beautiful Arrangement","M"],[698,"Partition to K Equal Sum Subsets","M"],[847,"Shortest Path Visiting All Nodes","H"]]},
+
+{id:"bit",ph:4,name:"Working with switches",term:"Bit Manipulation",
+ an:"XOR is a toggle switch: flip it twice and it's back to off. So pairs cancel out and the single one stays lit.",
+ spot:["Every number appears twice except one","Count set bits, powers of two","Add without + operator"],
+ tpl:`ans = 0
+for x in nums: ans ^= x      # pairs cancel
+x & (x - 1)                  # clears lowest set bit
+x & -x                       # isolates lowest set bit
+(x >> i) & 1                 # i-th bit`,
+ cx:"O(n) or O(number of bits).",
+ pr:[[136,"Single Number","E"],[191,"Number of 1 Bits","E"],[338,"Counting Bits","E"],[190,"Reverse Bits","E"],[137,"Single Number II","M"],[260,"Single Number III","M"],[371,"Sum of Two Integers","M"],[201,"Bitwise AND of Numbers Range","M"],[7,"Reverse Integer","M"]]},
+
+{id:"math",ph:4,name:"Number tricks",term:"Math & Geometry",
+ an:"Knowing that 2¹⁰ = 1024 means you square instead of multiplying ten times: 2 → 4 → 16 → 256 → …",
+ spot:["Big powers, primes, digits","Points on a plane, slopes","Overflow and modulo 10⁹+7"],
+ tpl:`def power(x, n):          # fast exponentiation
+    if n < 0: x, n = 1/x, -n
+    res = 1
+    while n:
+        if n & 1: res *= x
+        x *= x; n >>= 1
+    return res`,
+ cx:"O(log n) for powers; sieve O(n log log n).",
+ pr:[[66,"Plus One","E"],[50,"Pow(x, n)","M","powx-n"],[43,"Multiply Strings","M"],[172,"Factorial Trailing Zeroes","M"],[204,"Count Primes","M"],[2013,"Detect Squares","M"],[149,"Max Points on a Line","H"]]},
+
+{id:"des",ph:4,name:"Build the machine",term:"Data Structure Design",
+ an:"Designing a parcel locker: you pick the right mix of shelves (hash map) and a queue (linked list) so every operation is instant.",
+ spot:["\"Design a class that supports get / put / … in O(1)\"","Combine two structures to cover each other's weakness"],
+ tpl:`# LRU cache = hash map (key -> node) + doubly linked list
+get(k):  move node to front, return value
+put(k,v): insert/update at front
+          if size > cap: remove node at back, delete its key`,
+ cx:"O(1) per operation is the usual goal.",
+ pr:[[232,"Implement Queue using Stacks","E"],[225,"Implement Stack using Queues","E"],[705,"Design HashSet","E"],[706,"Design HashMap","E"],[146,"LRU Cache","M"],[1396,"Design Underground System","M"],[895,"Maximum Frequency Stack","H"],[460,"LFU Cache","H"]]},
+
+{id:"adv",ph:4,name:"Power tools",term:"Advanced: Segment Tree, Fenwick Tree, KMP, Rolling Hash, Merge-sort counting",
+ an:"A sports league table that updates instantly after each match (segment tree), or a spell-checker that never re-reads a letter it already matched (KMP).",
+ spot:["Range query + point updates, many times","Count pairs with order condition (inversions)","Fast substring matching or repeated substrings"],
+ tpl:`# Fenwick (Binary Indexed) Tree
+def update(i, delta):
+    while i <= n: tree[i] += delta; i += i & -i
+def query(i):                 # sum of 1..i
+    s = 0
+    while i > 0: s += tree[i]; i -= i & -i
+    return s`,
+ cx:"O(log n) per update / query; KMP O(n + m).",
+ pr:[[28,"Find the Index of the First Occurrence in a String","E"],[307,"Range Sum Query - Mutable","M"],[315,"Count of Smaller Numbers After Self","H"],[493,"Reverse Pairs","H"],[214,"Shortest Palindrome","H"],[1044,"Longest Duplicate Substring","H"],[218,"The Skyline Problem","H"]]}
+];
+
+const TRAP={
+hash:"Check the table BEFORE inserting the current number, or a number can pair with itself.",
+tp:"Only works on sorted data. In 3Sum, skip duplicate values or you'll output the same triplet twice.",
+sw:"Sliding window breaks when numbers can be negative in sum problems. Use prefix sum there.",
+ps:"Start the map with {0: 1} so subarrays that begin at index 0 are counted.",
+kad:"If every number is negative, the answer is the largest single number, not 0.",
+mat:"In spiral order, re-check top ≤ bottom and left ≤ right before walking the last row or column.",
+stk:"The stack must be empty at the end. \"((\" never mismatches, but it's still invalid.",
+bs:"Infinite loops come from lo = mid. Pick one template (lo <= hi or lo < hi) and always use it.",
+ll:"Save next before changing cur.next, or the rest of the list is lost.",
+fs:"Check fast and fast.next exist before jumping two steps.",
+cyc:"Only move i forward when the current number is already in place or can't be placed.",
+mono:"Store indices on the stack, not values, so you can measure distances.",
+bsa:"Set lo and hi to the real smallest and largest possible answers, not array positions.",
+dfs:"Separate what the function RETURNS from what it updates globally (diameter, max path sum).",
+bfs:"Freeze len(queue) before the inner loop, or two levels get mixed.",
+bst:"Comparing a node only with its direct children is wrong. Pass min and max bounds down.",
+heap:"For the K largest, use a MIN-heap of size K: the weakest of the top K sits on top, ready to be kicked out.",
+int:"Sort by start first. Decide whether touching intervals like [1,2] and [2,3] count as overlapping.",
+bt:"Save a COPY of the path, and always undo the choice after the recursive call returns.",
+trie:"Mark word ends separately. The path c-a-r existing doesn't mean \"car\" was inserted.",
+gr:"In BFS, mark a cell visited when you push it, not when you pop it, or it gets queued many times.",
+topo:"If fewer nodes come out than went in, the graph has a cycle.",
+uf:"Without path compression, long chains make find() slow.",
+sp:"Dijkstra fails with negative edges. Skip stale queue entries where d > dist[u].",
+gdy:"Greedy needs a reason. Try to break it with a small example before trusting it.",
+dp1:"Write dp[i] in words first (\"best money using houses 0..i\"). Most DP bugs are a fuzzy definition.",
+dp2:"The table is (n+1) × (m+1) because of the empty-string row and column. Watch the off-by-one.",
+knap:"Loop the sum backwards for use-once items. A forwards loop silently reuses items.",
+sm:"Compute today's states from yesterday's values, not from a half-updated today.",
+idp:"Fill by increasing range length, not row by row, so smaller ranges are ready when needed.",
+bm:"2ⁿ explodes quickly. Only reach for bitmasks when n ≤ 20.",
+bit:"Python integers have unlimited bits. Mask with 0xFFFFFFFF when a problem assumes 32-bit.",
+math:"Take the modulo (10⁹+7) after every multiplication, not just at the end.",
+des:"Update recency on get() too, not only on put().",
+adv:"Fenwick trees are 1-indexed. Index 0 makes i & -i equal 0 and loops forever."
+};
+
+/* ---------- visualizer: renderers ---------- */
+const U=50;
+function placePtrs(lane,ptr,unit){
+  const groups={};
+  Object.entries(ptr||{}).forEach(([k,v])=>{if(v==null||v<0)return;(groups[v]=groups[v]||[]).push(k);});
+  const live=new Set();let maxStack=0;
+  Object.entries(groups).forEach(([idx,names])=>{maxStack=Math.max(maxStack,names.length-1);names.forEach((nm,j)=>{
+    let el=[...lane.children].find(e=>e.dataset.p===nm);
+    if(!el){el=document.createElement('div');el.className='ptr';el.dataset.p=nm;el.textContent=nm;el.style.left=(idx*unit)+'px';lane.appendChild(el);}
+    el.style.left=(idx*unit)+'px';el.style.top=(j*18)+'px';el.style.opacity=1;live.add(nm);});});
+  [...lane.children].forEach(el=>{if(!live.has(el.dataset.p))el.style.opacity=0;});
+  lane.style.height=(24+18*maxStack)+'px';
+}
+function rArray(st,f){
+  const n=f.arr.length,key='a'+n+'|'+(f.row2?1:0);
+  if(st._key!==key){
+    const cells=()=>Array.from({length:n},()=>'<div class="cell"><b></b><small></small></div>').join('');
+    st.innerHTML=`<div class="va"><div class="rowWrap"><span class="rlab r1"></span><div class="cells c1">${cells()}<div class="win"></div></div></div>${f.row2?`<div class="rowWrap"><span class="rlab r2"></span><div class="cells c2">${cells()}</div></div>`:''}<div class="rowWrap"><span class="rlab"></span><div class="ptrs"></div></div></div>`;
+    st._key=key;
+  }
+  const v=st.firstChild,hl=f.hl||{};
+  v.querySelector('.r1').textContent=f.lab||'';
+  v.querySelectorAll('.c1 .cell').forEach((c,i)=>{c.querySelector('b').textContent=f.arr[i];c.querySelector('small').textContent=f.idx?f.idx[i]:i;c.className='cell '+(hl[i]||'');});
+  const w=v.querySelector('.win');
+  if(f.win&&f.win[1]>=f.win[0]){w.style.display='block';w.style.left=(f.win[0]*U-6)+'px';w.style.width=((f.win[1]-f.win[0]+1)*U-6+12)+'px';}else w.style.display='none';
+  if(f.row2){const h2=f.row2.hl||{};v.querySelector('.r2').textContent=f.row2.label;v.querySelectorAll('.c2 .cell').forEach((c,i)=>{c.querySelector('b').textContent=f.row2.vals[i]??'';c.querySelector('small').textContent='';c.className='cell '+(h2[i]||'');});}
+  placePtrs(v.querySelector('.ptrs'),f.ptr,U);
+}
+function rList(st,f){
+  const n=f.vals.length,key='l'+n;
+  if(st._key!==key){
+    let h='';for(let i=0;i<n;i++){h+='<div class="cell"><b></b></div>';if(i<n-1)h+='<div class="larr"></div>';}
+    st.innerHTML=`<div class="va"><div class="rowWrap"><span class="rlab"></span><div class="cells lc">${h}<span class="ltail"></span></div></div><div class="rowWrap"><span class="rlab"></span><div class="ptrs"></div></div></div>`;
+    st._key=key;
+  }
+  const v=st.firstChild,hl=f.hl||{};
+  v.querySelectorAll('.lc .cell').forEach((c,i)=>{c.querySelector('b').textContent=f.vals[i];c.className='cell '+(hl[i]||'');});
+  v.querySelectorAll('.larr').forEach((a,i)=>a.textContent=f.arrows[i]);
+  v.querySelector('.ltail').textContent=f.tail||'';
+  placePtrs(v.querySelector('.ptrs'),f.ptr,44+6+24+6);
+}
+function rGrid(st,f){
+  const R=f.g.length,C=f.g[0].length,key='g'+R+'x'+C;
+  if(st._key!==key){st.innerHTML=`<div class="vgrid" style="grid-template-columns:repeat(${C},40px)">${'<div class="gc"></div>'.repeat(R*C)}</div>`;st._key=key;}
+  const hl=f.hl||{};
+  st.firstChild.querySelectorAll('.gc').forEach((c,k)=>{const r=Math.floor(k/C),cc=k%C;c.textContent=f.g[r][cc];c.className='gc '+(hl[r+','+cc]||'');});
+}
+function layoutTree(nodes,root){
+  const pos={};let leaf=0,maxD=0;
+  (function go(id,d){maxD=Math.max(maxD,d);const ch=nodes[id].ch||[];
+    if(!ch.length){pos[id]={x:leaf++,y:d};return;}
+    const xs=[];ch.forEach(c=>{if(c==null){xs.push(leaf);leaf++;}else{go(c,d+1);xs.push(pos[c].x);}});
+    pos[id]={x:(xs[0]+xs[xs.length-1])/2,y:d};})(root,0);
+  return {pos,leaves:leaf,depth:maxD};
+}
+function rTree(st,f){
+  if(!f.nodes[f.root]){st.innerHTML='<p class="empty">Empty</p>';st._key='empty';return;}
+  const key='t'+JSON.stringify(Object.entries(f.nodes).map(([k,n])=>[k,n.ch]))+f.root;
+  if(st._key!==key){
+    const {pos,leaves,depth}=layoutTree(f.nodes,f.root);const SX=f.sx||50,SY=64,R=f.r||17,W=Math.max(leaves*SX,220)+30,H=(depth+1)*SY+14;
+    const off=(W-leaves*SX)/2,X=id=>pos[id].x*SX+SX/2+off,Y=id=>pos[id].y*SY+30;
+    let e='',nd='';
+    Object.entries(f.nodes).forEach(([id,n])=>{if(!(id in pos))return;
+      (n.ch||[]).forEach(c=>{if(c!=null&&c in pos)e+=`<line class="e" x1="${X(id)}" y1="${Y(id)}" x2="${X(c)}" y2="${Y(c)}"/>`;});
+      nd+=`<g class="tn" data-id="${id}"><circle cx="${X(id)}" cy="${Y(id)}" r="${R}"/><text class="lb" x="${X(id)}" y="${Y(id)}"></text><text class="tag" x="${X(id)+R+2}" y="${Y(id)-R+2}"></text></g>`;});
+    st.innerHTML=`<svg class="vsvg" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}">${e}${nd}</svg>`;st._key=key;
+  }
+  const hl=f.hl||{},tag=f.tag||{};
+  st.querySelectorAll('.tn').forEach(g=>{const id=g.dataset.id,lb=String(f.nodes[id].label);g.setAttribute('class','tn '+(hl[id]||''));
+    const t=g.querySelector('.lb');t.textContent=lb;t.style.fontSize=lb.length>4?'9.5px':lb.length>2?'11px':'';g.querySelector('.tag').textContent=tag[id]||'';});
+}
+function rGraph(st,f){
+  const key='G'+f.gid;
+  const byId=Object.fromEntries(f.nodes.map(n=>[n.id,n]));
+  if(st._key!==key){
+    let e='';
+    f.edges.forEach(([a,b,w])=>{const A=byId[a],B=byId[b];let x2=B.x,y2=B.y;
+      if(f.dir){const dx=B.x-A.x,dy=B.y-A.y,L=Math.hypot(dx,dy);x2=B.x-dx/L*22;y2=B.y-dy/L*22;}
+      e+=`<line class="e" data-e="${a}-${b}" x1="${A.x}" y1="${A.y}" x2="${x2}" y2="${y2}" ${f.dir?`marker-end="url(#ah-${f.gid})"`:''}/>`;
+      if(w!=null)e+=`<text class="ew" x="${(A.x+B.x)/2+8}" y="${(A.y+B.y)/2-6}">${w}</text>`;});
+    const nd=f.nodes.map(n=>`<g class="tn" data-id="${n.id}"><circle cx="${n.x}" cy="${n.y}" r="18"/><text class="lb" x="${n.x}" y="${n.y}">${n.id}</text><text class="tag" x="${n.x+20}" y="${n.y-18}"></text></g>`).join('');
+    st.innerHTML=`<svg class="vsvg" viewBox="0 0 430 235" width="430" height="235"><defs><marker id="ah-${f.gid}" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="mk" d="M0,0 L10,5 L0,10 z"/></marker></defs>${e}${nd}</svg>`;st._key=key;
+  }
+  const hl=f.hl||{},tag=f.tag||{},eh=f.eh||{},fill=f.fill||{};
+  st.querySelectorAll('.e').forEach(l=>{const [a,b]=l.dataset.e.split('-');l.setAttribute('class','e '+(eh[a+'-'+b]||eh[b+'-'+a]||''));});
+  st.querySelectorAll('.tn').forEach(g=>{const id=g.dataset.id;g.setAttribute('class','tn '+(hl[id]||'')+(fill[id]!=null?' fl':''));
+    g.querySelector('circle').style.fill=fill[id]!=null?`var(--g${fill[id]})`:'';g.querySelector('.tag').textContent=tag[id]||'';});
+}
+function rTab(st,f){
+  const R=f.cells.length,C=f.cells[0].length,key='T'+R+'x'+C+f.rh.join('')+'|'+f.ch.join('');
+  if(st._key!==key){
+    st.innerHTML=`<table class="vtab"><tr><th></th>${f.ch.map(c=>`<th>${esc(c)}</th>`).join('')}</tr>${f.rh.map(r=>`<tr><th>${esc(r)}</th>${'<td></td>'.repeat(C)}</tr>`).join('')}</table>`;st._key=key;
+  }
+  const hl=f.hl||{};
+  st.querySelectorAll('tr').forEach((tr,ri)=>{if(!ri)return;tr.querySelectorAll('td').forEach((td,j)=>{const i=ri-1;td.textContent=f.cells[i][j];td.className=hl[i+','+j]||'';});});
+}
+function rInt(st,f){
+  const span=f.max-f.min,pct=x=>((x-f.min)/span*100);
+  const bar=(b,cls)=>`<div class="ibar ${cls||''}" style="left:${pct(b.s)}%;width:${pct(b.e)-pct(b.s)}%">${esc(b.txt||(b.s+'–'+b.e))}</div>`;
+  let h='<div class="vi">';
+  f.bars.forEach(b=>h+=`<div class="irow"><span class="rlab">${esc(b.lab)}</span><div class="itrack">${bar(b,b.cls)}</div></div>`);
+  if(f.out)h+=`<div class="irow out"><span class="rlab">${esc(f.outLab||'')}</span><div class="itrack">${f.out.map(b=>bar(b,'ok')).join('')}</div></div>`;
+  h+=`<div class="irow"><span class="rlab"></span><div class="itrack axis">${(f.ticks||[]).map(([p,l])=>`<span style="left:${pct(p)}%">${l}</span>`).join('')}</div></div></div>`;
+  st.innerHTML=h;st._key='int';
+}
+const REND={arr:rArray,list:rList,grid:rGrid,tree:rTree,graph:rGraph,tab:rTab,int:rInt};
+
+/* ---------- visualizer: examples ---------- */
+function mk(base){const fr=[];return [fr,o=>fr.push(Object.assign({},base,o))];}
+function fromArr(arr){const nodes={};arr.forEach((x,i)=>{if(x==null)return;const l=2*i+1,r=2*i+2,hl=arr[l]!=null,hr=arr[r]!=null;nodes[i]={label:x,ch:(hl||hr)?[hl?l:null,hr?r:null]:[]};});return nodes;}
+const all=(n,c)=>Object.fromEntries([...Array(n)].map((_,i)=>[i,c]));
+const V={};
+
+V.hash=()=>{const a=[4,1,9,7,5,3],t=12,m={};const [fr,f]=mk({k:'arr',arr:a});
+  const tbl=extra=>({t:'Lookup table (value → index)',v:Object.entries(m).map(([k,v])=>`${k} → ${v}`).concat(extra||[])});
+  f({note:`Goal: find two numbers that add up to ${t}. Walk once, keeping a lookup table of numbers already passed.`,side:[{t:'Lookup table (value → index)',v:['empty']}]});
+  for(let i=0;i<a.length;i++){const need=t-a[i],hl={};for(let j=0;j<i;j++)hl[j]='seen';
+    if(need in m){hl[i]='ok';hl[m[need]]='ok';f({hl,ptr:{i},note:`${a[i]} needs ${need}. The table says ${need} is at index ${m[need]}. Answer [${m[need]}, ${i}], in one pass instead of checking every pair.`,side:[tbl()]});break;}
+    hl[i]='on';f({hl,ptr:{i},note:`${a[i]} needs ${need} to reach ${t}. Is ${need} in the table? No. Save ${a[i]} → ${i} and move on.`,side:[tbl([`${a[i]} → ${i}`])]});m[a[i]]=i;}
+  return {title:`Two Sum: [${a.join(', ')}], target ${t}`,frames:fr};};
+
+V.tp=()=>{const a=[1,3,4,6,8,11,14],t=10;const [fr,f]=mk({k:'arr',arr:a});let l=0,r=a.length-1;
+  f({ptr:{L:l,R:r},note:`Sorted list, target ${t}. Put one finger at each end.`});
+  while(l<r){const s=a[l]+a[r],hl={};a.forEach((_,i)=>{if(i<l||i>r)hl[i]='dim'});
+    if(s===t){hl[l]='ok';hl[r]='ok';f({hl,ptr:{L:l,R:r},note:`${a[l]} + ${a[r]} = ${s}. Found the pair!`});break;}
+    hl[l]='on';hl[r]='on';
+    if(s>t){f({hl,ptr:{L:l,R:r},note:`${a[l]} + ${a[r]} = ${s}, too big. Even the smallest partner is too much for ${a[r]}, so drop it: R moves left.`});r--;}
+    else{f({hl,ptr:{L:l,R:r},note:`${a[l]} + ${a[r]} = ${s}, too small. Even the biggest partner isn't enough for ${a[l]}, so drop it: L moves right.`});l++;}}
+  return {title:`Pair adding to ${t} in [${a.join(', ')}]`,frames:fr};};
+
+V.sw=()=>{const s=[...'pwwkew'];const [fr,f]=mk({k:'arr',arr:s});const set=new Set();let l=0,best=0;
+  const sd=()=>[{t:'Letters in window',v:set.size?[...set]:['empty']},{t:'Best length',v:String(best)}];
+  f({note:'Find the longest stretch with no repeated letter. The dashed box is the window.',side:sd()});
+  for(let r=0;r<s.length;r++){
+    while(set.has(s[r])){f({win:[l,r-1],hl:{[r]:'bad'},ptr:{L:l,R:r},note:`'${s[r]}' is already inside. Shrink from the left: drop '${s[l]}'.`,side:sd()});set.delete(s[l]);l++;}
+    set.add(s[r]);best=Math.max(best,r-l+1);
+    f({win:[l,r],hl:{[r]:'on'},ptr:{L:l,R:r},note:`Add '${s[r]}'. Window "${s.slice(l,r+1).join('')}" has no repeats, length ${r-l+1}.`,side:sd()});}
+  f({win:[l,s.length-1],note:`Done. Each letter entered and left the window at most once, so O(n). Answer: ${best}.`,side:sd()});
+  return {title:'Longest substring without repeats in "pwwkew"',frames:fr};};
+
+V.ps=()=>{const a=[1,2,3,-2,4,1],k=5;const [fr,f]=mk({k:'arr',arr:a,lab:'nums'});const pre=Array(a.length).fill('');const cnt={0:1},where={0:[-1]};let run=0,ans=0;
+  const sd=()=>[{t:'Running totals seen (total ×count)',v:Object.entries(cnt).map(([s,c])=>`${s} ×${c}`)},{t:'Subarrays found',v:String(ans)}];
+  f({row2:{label:'running',vals:pre.slice()},note:`Count subarrays adding to ${k}. Keep a running total. If an earlier total equals (running − ${k}), the part in between adds to ${k}.`,side:sd()});
+  for(let i=0;i<a.length;i++){run+=a[i];pre[i]=run;const need=run-k;
+    if(cnt[need]){ans+=cnt[need];const j=where[need][0];const hl={};for(let x=j+1;x<=i;x++)hl[x]='ok';
+      f({row2:{label:'running',vals:pre.slice(),hl:{[i]:'on',...(j>=0?{[j]:'in'}:{})}},win:[j+1,i],hl,ptr:{i},note:`Total ${run}. Need an earlier total of ${run} − ${k} = ${need}. Seen it! So index ${j+1}..${i} adds to ${k}.`,side:sd()});}
+    else f({row2:{label:'running',vals:pre.slice(),hl:{[i]:'on'}},hl:{[i]:'on'},ptr:{i},note:`Total ${run}. Need an earlier total of ${need}. Never seen, so nothing ends here.`,side:sd()});
+    cnt[run]=(cnt[run]||0)+1;(where[run]=where[run]||[]).push(i);}
+  f({row2:{label:'running',vals:pre.slice()},note:`One pass, ${ans} subarrays add to ${k}. Works with negative numbers, where sliding window fails.`,side:sd()});
+  return {title:`Subarrays of [${a.join(', ')}] adding to ${k}`,frames:fr};};
+
+V.kad=()=>{const a=[-2,1,-3,4,-1,2,1,-5,4];const [fr,f]=mk({k:'arr',arr:a});let cur=a[0],best=a[0],st=0,bs=0,be=0;
+  const sd=()=>[{t:'Current streak',v:String(cur)},{t:'Best so far',v:`${best} (index ${bs}..${be})`}];
+  f({win:[0,0],ptr:{i:0},note:'Start a streak with the first number.',side:sd()});
+  for(let i=1;i<a.length;i++){let msg;
+    if(a[i]>cur+a[i]){cur=a[i];st=i;msg=`The old streak is negative and only drags us down. Start fresh at ${a[i]}.`;}
+    else{cur+=a[i];msg=`Adding ${a[i]} is still worth it: streak = ${cur}.`;}
+    if(cur>best){best=cur;bs=st;be=i;msg+=' New best!';}
+    f({win:[st,i],hl:{[i]:'on'},ptr:{i},note:msg,side:sd()});}
+  const hl={};for(let j=bs;j<=be;j++)hl[j]='ok';f({hl,note:`Best subarray: index ${bs}..${be}, sum ${best}. One pass.`,side:sd()});
+  return {title:`Max subarray sum of [${a.join(', ')}]`,frames:fr};};
+
+V.mat=()=>{const R=4,C=4,g=[...Array(R)].map((_,r)=>[...Array(C)].map((_,c)=>r*C+c+1));const [fr,f]=mk({k:'grid',g});const vis={},out=[];let top=0,bot=R-1,le=0,ri=C-1;
+  const step=(r,c,msg)=>{const hl=Object.assign({},vis);hl[r+','+c]='on';out.push(g[r][c]);f({hl,note:msg,side:[{t:'Output',v:out.slice()}]});vis[r+','+c]='in';};
+  f({note:'Walk the outer ring clockwise, then pull all four borders inwards and repeat.',side:[{t:'Output',v:['empty']}]});
+  while(top<=bot&&le<=ri){for(let c=le;c<=ri;c++)step(top,c,'Top row, left to right.');top++;
+    for(let r=top;r<=bot;r++)step(r,ri,'Right column, going down.');ri--;
+    if(top<=bot){for(let c=ri;c>=le;c--)step(bot,c,'Bottom row, right to left.');bot--;}
+    if(le<=ri){for(let r=bot;r>=top;r--)step(r,le,'Left column, going up.');le++;}}
+  f({hl:vis,note:'Every cell visited exactly once: O(rows × cols).',side:[{t:'Output',v:out}]});
+  return {title:'Spiral order of a 4 × 4 grid',frames:fr};};
+
+V.stk=()=>{const s=[...'{[()()]}'];const [fr,f]=mk({k:'arr',arr:s});const st=[];const sd=()=>[{t:'Stack (bottom → top)',v:st.length?st.slice():['empty']}];
+  f({note:'Push every opening bracket. On a closing bracket, the top of the stack must be its partner.',side:sd()});
+  s.forEach((ch,i)=>{const hl={};for(let j=0;j<i;j++)hl[j]='seen';
+    if('([{'.includes(ch)){st.push(ch);hl[i]='on';f({hl,ptr:{i},note:`'${ch}' opens something. Push it on the pile.`,side:sd()});}
+    else{const top=st.pop();hl[i]='ok';f({hl,ptr:{i},note:`'${ch}' closes. Top of the pile is '${top}', its partner. Pop it.`,side:sd()});}});
+  f({hl:all(s.length,'ok'),note:'The pile is empty at the end, so every bracket found its partner. Valid!',side:sd()});
+  return {title:'Is "{[()()]}" balanced?',frames:fr};};
+
+V.bs=()=>{const a=[2,5,8,12,16,23,38,56,72,91],t=23;const [fr,f]=mk({k:'arr',arr:a});let lo=0,hi=a.length-1,n=0;
+  f({ptr:{lo,hi},note:`Find ${t}. Look at the middle, then throw away the half that can't contain it.`});
+  while(lo<=hi){const mid=(lo+hi)>>1;n++;const hl={};a.forEach((_,i)=>{if(i<lo||i>hi)hl[i]='dim'});
+    if(a[mid]===t){hl[mid]='ok';f({hl,ptr:{lo,mid,hi},note:`Look ${n}: middle is ${a[mid]}. Found! Only ${n} looks for ${a.length} items. A million items would need about 20.`});break;}
+    hl[mid]='on';
+    if(a[mid]<t){f({hl,ptr:{lo,mid,hi},note:`Look ${n}: middle is ${a[mid]}, smaller than ${t}. Everything to its left is smaller too. Drop the left half.`});lo=mid+1;}
+    else{f({hl,ptr:{lo,mid,hi},note:`Look ${n}: middle is ${a[mid]}, bigger than ${t}. Drop the right half.`});hi=mid-1;}}
+  return {title:`Find ${t} in a sorted list`,frames:fr};};
+
+V.ll=()=>{const v=[1,2,3,4,5],n=v.length,ar=Array(n-1).fill('→');const [fr,f]=mk({k:'list',vals:v});
+  f({arrows:ar.slice(),ptr:{cur:0},note:'Reverse the chain by turning each arrow around, one node at a time. prev starts as null.'});
+  for(let i=0;i<n;i++){const P={prev:i-1,cur:i,next:i+1<n?i+1:null};
+    f({arrows:ar.slice(),hl:{[i]:'on'},ptr:P,note:`Save next (${i+1<n?v[i+1]:'null'}) first, or we lose the rest of the chain.`});
+    if(i>0)ar[i-1]='←';if(i<n-1)ar[i]=' ';
+    f({arrows:ar.slice(),hl:{[i]:'ok'},ptr:P,note:`Point ${v[i]} back to ${i>0?v[i-1]:'null'}. Then slide prev and cur one step right.`});}
+  f({arrows:ar.slice(),hl:all(n,'ok'),ptr:{head:n-1},note:'Every arrow is flipped and 5 is the new head. O(n) time, O(1) extra space.'});
+  return {title:'Reverse 1 → 2 → 3 → 4 → 5',frames:fr};};
+
+V.fs=()=>{const v=[1,2,3,4,5,6],nx=i=>i<5?i+1:2;const [fr,f]=mk({k:'list',vals:v,arrows:Array(5).fill('→'),tail:'↩ back to 3'});let s=0,q=0,step=0;
+  f({ptr:{slow:0,fast:0},note:'Node 6 links back to 3, so walking never ends. Slow moves 1 step, fast moves 2.'});
+  do{s=nx(s);q=nx(nx(q));step++;const meet=s===q;
+    f({ptr:{slow:s,fast:q},hl:meet?{[s]:'ok'}:{[s]:'in',[q]:'on'},note:meet?`They meet at ${v[s]}. Fast lapped slow, which is only possible if there's a loop.`:`Step ${step}: slow at ${v[s]}, fast at ${v[q]}.`});}while(s!==q);
+  return {title:'Detect the loop in 1 → … → 6 ↩ 3',frames:fr};};
+
+V.cyc=()=>{const a=[3,1,5,4,2];const idx=a.map((_,i)=>'seat '+(i+1));const [fr,f]=mk({k:'arr',idx});let i=0;
+  f({arr:a.slice(),note:'Each number 1…5 belongs in its own seat. Keep swapping the current number into its seat.'});
+  while(i<a.length){const j=a[i]-1;
+    if(a[i]!==a[j]){f({arr:a.slice(),hl:{[i]:'on',[j]:'in'},ptr:{i},note:`${a[i]} belongs in seat ${a[i]}. Swap it there.`});[a[i],a[j]]=[a[j],a[i]];}
+    else{f({arr:a.slice(),hl:{[i]:'ok'},ptr:{i},note:`${a[i]} is in its own seat. Move on.`});i++;}}
+  f({arr:a.slice(),hl:all(a.length,'ok'),note:'Sorted in O(n) with no extra space. Any number left in the wrong seat afterwards reveals a missing or duplicate value.'});
+  return {title:'Cyclic sort of [3, 1, 5, 4, 2]',frames:fr};};
+
+V.mono=()=>{const t=[73,74,75,71,69,72,76,73];const [fr,f]=mk({k:'arr',arr:t,lab:'temp'});const ans=Array(t.length).fill('·');const st=[];
+  const sd=()=>[{t:'Stack: days still waiting (temps)',v:st.length?st.map(j=>String(t[j])):['empty']}];
+  f({row2:{label:'wait',vals:ans.slice()},note:'How many days until a warmer day? The stack holds days still waiting; its temps always decrease.',side:sd()});
+  t.forEach((x,i)=>{while(st.length&&t[st[st.length-1]]<x){const j=st.pop();ans[j]=i-j;
+      f({row2:{label:'wait',vals:ans.slice(),hl:{[j]:'ok'}},hl:{[i]:'on',[j]:'ok'},ptr:{i},note:`${x} beats ${t[j]} (day ${j}). Day ${j} waited ${i-j} day(s). Pop it.`,side:sd()});}
+    st.push(i);f({row2:{label:'wait',vals:ans.slice()},hl:{[i]:'in'},ptr:{i},note:`Day ${i} (${x}) joins the stack to wait.`,side:sd()});});
+  f({row2:{label:'wait',vals:ans.map(x=>x==='·'?0:x)},note:'Days still on the stack never warmed up: 0. Each day is pushed and popped once, so O(n).',side:sd()});
+  return {title:'Daily temperatures',frames:fr};};
+
+V.bsa=()=>{const p=[3,6,7,11],h=8,sp=[...Array(11)].map((_,i)=>i+1);const [fr,f]=mk({k:'arr',arr:sp,idx:sp.map(()=>''),lab:'speed'});
+  const hrs=s=>p.reduce((a,x)=>a+Math.ceil(x/s),0);let lo=0,hi=10;
+  f({ptr:{lo,hi},note:`Banana piles [${p.join(', ')}], ${h} hours. Don't search the array. Binary-search the SPEED, from 1 to 11.`});
+  while(lo<hi){const m=(lo+hi)>>1,H=hrs(sp[m]),hl={};sp.forEach((_,i)=>{if(i<lo||i>hi)hl[i]='dim'});const calc=p.map(x=>Math.ceil(x/sp[m])).join(' + ');
+    if(H<=h){hl[m]='ok';f({hl,ptr:{lo,mid:m,hi},note:`Speed ${sp[m]}: ${calc} = ${H} hours, fits in ${h}. Works, so try slower.`,side:[{t:'Hours needed',v:String(H)}]});hi=m;}
+    else{hl[m]='bad';f({hl,ptr:{lo,mid:m,hi},note:`Speed ${sp[m]}: ${calc} = ${H} hours, more than ${h}. Too slow, go faster.`,side:[{t:'Hours needed',v:String(H)}]});lo=m+1;}}
+  f({hl:{[lo]:'ok'},ptr:{answer:lo},note:`Slowest speed that still finishes: ${sp[lo]} per hour.`});
+  return {title:'Koko Eating Bananas',frames:fr};};
+
+V.dfs=()=>{const nodes=fromArr([1,2,3,4,5,null,6,null,null,7]);const [fr,f]=mk({k:'tree',nodes,root:0});const hl={},tag={};
+  f({note:'Max depth: each node asks its children for their depth, then answers 1 + the bigger one. Answers bubble up from the leaves.'});
+  const go=i=>{if(i==null||!nodes[i])return 0;hl[i]='on';f({hl:{...hl},tag:{...tag},note:`Visit ${nodes[i].label}. Ask its children first.`});hl[i]='in';
+    const [a,b]=nodes[i].ch;const L=go(a),R=go(b),d=1+Math.max(L,R);tag[i]='h'+d;hl[i]='ok';
+    f({hl:{...hl},tag:{...tag},note:`${nodes[i].label}: left says ${L}, right says ${R}. Return 1 + max = ${d}.`});return d;};
+  const d=go(0);f({hl:{...hl},tag:{...tag},note:`The root answers ${d}. Every node visited once: O(n).`});
+  return {title:'Maximum depth of a binary tree',frames:fr};};
+
+V.bfs=()=>{const nodes=fromArr([1,2,3,4,5,null,6,null,null,7]);const [fr,f]=mk({k:'tree',nodes,root:0});let q=[0];const levels=[],done={};
+  const sd=()=>[{t:'Queue',v:q.length?q.map(x=>String(nodes[x].label)):['empty']},{t:'Levels',v:levels.length?levels.map(l=>'['+l+']'):['none yet']}];
+  f({hl:{0:'in'},note:'Use a queue. Each round handles exactly the nodes in the queue at the start of the round: that is one level.',side:sd()});
+  while(q.length){const lvl=[],nq=[];for(const x of q){lvl.push(nodes[x].label);(nodes[x].ch||[]).forEach(c=>{if(c!=null)nq.push(c)});done[x]='ok';}
+    levels.push(lvl);const old=q;q=nq;
+    f({hl:{...done,...Object.fromEntries(q.map(x=>[x,'in']))},note:q.length?`Level ${levels.length-1} done: [${lvl}]. Their ${q.length} child(ren) enter the queue.`:`Level ${levels.length-1} done: [${lvl}]. Queue empty, so every level is finished. O(n).`,side:sd()});}
+  return {title:'Level-order traversal',frames:fr};};
+
+V.bst=()=>{const nodes=fromArr([8,3,10,1,6,null,14,null,null,4,7]),t=7;const [fr,f]=mk({k:'tree',nodes,root:0});const hl={};let n=0;
+  const dimSub=i=>{if(i==null||!nodes[i])return;hl[i]='dim';(nodes[i].ch||[]).forEach(dimSub);};
+  f({note:`Search for ${t}. Smaller goes left, bigger goes right, so every step skips a whole side.`});
+  let i=0;while(i!=null&&nodes[i]){const v=nodes[i].label;n++;
+    if(v===t){hl[i]='ok';f({hl:{...hl},note:`Found ${t} after checking only ${n} of ${Object.keys(nodes).length} nodes.`});break;}
+    hl[i]='on';const [L,R]=nodes[i].ch;
+    if(t<v){dimSub(R);f({hl:{...hl},note:`${t} < ${v}: go left. The right side is all bigger, skip it.`});hl[i]='in';i=L;}
+    else{dimSub(L);f({hl:{...hl},note:`${t} > ${v}: go right. The left side is all smaller, skip it.`});hl[i]='in';i=R;}}
+  return {title:`Search ${t} in a BST`,frames:fr};};
+
+V.heap=()=>{const a=[5,1,9,3,7,2,8],k=3,h=[];const [fr,f]=mk({k:'tree',root:0});
+  const snap=(hl,note,i)=>f({nodes:fromArr(h.slice()),hl,note,side:[{t:'Input',v:a.map((x,j)=>j===i?`▶ ${x}`:String(x))},{t:'Heap size',v:`${h.length} / ${k}`}]});
+  const up=()=>{let i=h.length-1;while(i>0){const p=(i-1)>>1;if(h[p]<=h[i])break;[h[p],h[i]]=[h[i],h[p]];i=p;}};
+  const down=()=>{let i=0;for(;;){const l=2*i+1,r=l+1;let m=i;if(l<h.length&&h[l]<h[m])m=l;if(r<h.length&&h[r]<h[m])m=r;if(m===i)break;[h[m],h[i]]=[h[i],h[m]];i=m;}};
+  a.forEach((x,i)=>{h.push(x);up();snap({0:'on'},`Push ${x}. In a min-heap the smallest value always sits on top (now ${h[0]}).`,i);
+    if(h.length>k){const s=h[0];h[0]=h[h.length-1];h.pop();down();snap({0:'in'},`${k+1} items is too many. Pop the smallest (${s}): it can't be in the top ${k}.`,i);}});
+  snap({0:'ok'},`The heap now holds the ${k} largest: ${[...h].sort((x,y)=>y-x).join(', ')}. Its top (${h[0]}) is the ${k}rd largest. Cost O(n log k).`,-1);
+  return {title:`${k}rd largest in [${a.join(', ')}]`,frames:fr};};
+
+V.int=()=>{const iv=[[1,3],[8,10],[2,6],[15,18],[9,12]],s=iv.slice().sort((a,b)=>a[0]-b[0]);const ticks=[0,3,6,9,12,15,18].map(x=>[x,x]);
+  const [fr,f]=mk({k:'int',min:0,max:19,outLab:'merged',ticks});const out=[];
+  const bars=cls=>s.map((x,i)=>({s:x[0],e:x[1],lab:`[${x}]`,cls:cls[i]||''}));const O=()=>out.map(o=>({s:o[0],e:o[1]}));
+  f({bars:iv.map(x=>({s:x[0],e:x[1],lab:`[${x}]`})),out:[],note:'Unsorted bookings. Step 1: sort them by start time.'});
+  f({bars:bars({}),out:[],note:'Sorted. Now sweep left to right, keeping the last merged block.'});
+  s.forEach((x,i)=>{const cls={};for(let j=0;j<i;j++)cls[j]='dim';cls[i]='on';
+    if(out.length&&x[0]<=out[out.length-1][1]){const o=out[out.length-1],old=o[1];o[1]=Math.max(o[1],x[1]);f({bars:bars(cls),out:O(),note:`[${x}] starts at ${x[0]}, before the last block ends (${old}). Overlap: stretch the block to ${o[1]}.`});}
+    else{out.push([...x]);f({bars:bars(cls),out:O(),note:`[${x}] starts after the last block ends. No overlap: start a new block.`});}});
+  f({bars:bars({}),out:O(),note:`Merged: ${out.map(o=>'['+o+']').join(' ')}. Sorting costs O(n log n); the sweep is O(n).`});
+  return {title:'Merge overlapping intervals',frames:fr};};
+
+V.bt=()=>{const a=[1,2,3],nodes={},lab=s=>'{'+s.join(',')+'}';
+  (function build(id,d,sub){nodes[id]={label:lab(sub),ch:d<a.length?[id+'0',id+'1']:[]};if(d<a.length){build(id+'0',d+1,sub);build(id+'1',d+1,[...sub,a[d]]);}})('r',0,[]);
+  const [fr,f]=mk({k:'tree',nodes,root:'r',sx:58,r:21});const hl={},res=[];const sd=()=>[{t:'Results',v:res.length?res.slice():['none yet']}];
+  f({note:'Each number gets two branches: skip it (left) or take it (right). Go down, record at the bottom, come back up, try the other branch.',side:sd()});
+  (function go(id,d,sub){hl[id]='on';
+    if(d===a.length){res.push(lab(sub));hl[id]='ok';f({hl:{...hl},note:`Bottom reached: record ${lab(sub)}.`,side:sd()});return;}
+    f({hl:{...hl},note:`At ${lab(sub)}. Decide on ${a[d]}: first, skip it.`,side:sd()});hl[id]='in';go(id+'0',d+1,sub);
+    hl[id]='on';f({hl:{...hl},note:`Back at ${lab(sub)} (undo the last choice). Now take ${a[d]}.`,side:sd()});hl[id]='in';go(id+'1',d+1,[...sub,a[d]]);hl[id]='seen';})('r',0,[]);
+  f({hl:{...hl},note:`All ${res.length} subsets found (2³ = 8). The rhythm is always: choose, explore, un-choose.`,side:sd()});
+  return {title:'All subsets of [1, 2, 3]',frames:fr};};
+
+V.trie=()=>{const words=['car','cat','cart','dog','do'];let nid=1;const nodes={0:{label:'•',ch:[]}},kids={0:{}},end={},ins=[];const [fr,f]=mk({k:'tree',root:0,sx:46});
+  const snap=(hl,note)=>f({nodes:JSON.parse(JSON.stringify(nodes)),hl,tag:Object.fromEntries(Object.keys(end).map(k=>[k,'✓'])),note,side:[{t:'Words stored',v:ins.length?ins.slice():['none']}]});
+  snap({},'An empty root. Each node is one letter; words that start the same share the same path.');
+  words.forEach(w=>{let cur=0;const path={0:'in'};
+    for(const ch of w){let msg;if(kids[cur][ch]!=null){cur=kids[cur][ch];msg=`'${ch}' already exists here, reuse it.`;}
+      else{const n=nid++;nodes[n]={label:ch,ch:[]};nodes[cur].ch.push(n);kids[cur][ch]=n;kids[n]={};cur=n;msg=`'${ch}' is new here, create a node.`;}
+      path[cur]='on';snap({...path},`Insert "${w}": ${msg}`);path[cur]='in';}
+    end[cur]=1;ins.push(w);path[cur]='ok';snap({...path},`Mark the end of "${w}" with ✓.`);});
+  snap({},'"do" and "dog" share one path. A lookup costs O(word length), however many words are stored.');
+  return {title:'Insert car, cat, cart, dog, do',frames:fr};};
+
+V.gr=()=>{const g=[[1,1,0,0,1],[1,0,0,1,1],[0,0,1,0,0],[1,0,1,1,0]],R=4,C=5;const [fr,f]=mk({k:'grid',g});const col={};let n=0;
+  const hlOf=(r,c)=>{const o={};Object.entries(col).forEach(([k,v])=>o[k]='i'+(v%4));if(r!=null)o[r+','+c]+=' on';return o;};
+  f({note:'Scan cell by cell. On land (1) not yet coloured, flood-fill the whole island so it is never counted twice.',side:[{t:'Islands',v:'0'}]});
+  for(let r=0;r<R;r++)for(let c=0;c<C;c++){if(g[r][c]!==1||col[r+','+c]!=null)continue;const id=n++;const stack=[[r,c]];col[r+','+c]=id;
+    f({hl:hlOf(r,c),note:`New land at (${r},${c}). Island #${n}! Flood from here.`,side:[{t:'Islands',v:String(n)}]});
+    while(stack.length){const [x,y]=stack.pop();[[1,0],[-1,0],[0,1],[0,-1]].forEach(([dx,dy])=>{const a=x+dx,b=y+dy;
+      if(a<0||b<0||a>=R||b>=C||g[a][b]!==1||col[a+','+b]!=null)return;col[a+','+b]=id;stack.push([a,b]);
+      f({hl:hlOf(a,b),note:`(${a},${b}) touches it. Same island.`,side:[{t:'Islands',v:String(n)}]});});}}
+  f({hl:hlOf(),note:`${n} islands. Each cell visited once: O(rows × cols).`,side:[{t:'Islands',v:String(n)}]});
+  return {title:'Number of islands',frames:fr};};
+
+V.topo=()=>{const N=[{id:0,x:40,y:115},{id:1,x:150,y:45},{id:2,x:150,y:185},{id:3,x:265,y:115},{id:4,x:385,y:115},{id:5,x:265,y:210}];
+  const E=[[0,1],[0,2],[1,3],[2,3],[3,4],[5,4]],indeg=[0,0,0,0,0,0];E.forEach(([,b])=>indeg[b]++);
+  const [fr,f]=mk({k:'graph',gid:'topo',nodes:N,edges:E,dir:true});const done={},order=[];let q=N.filter(n=>!indeg[n.id]).map(n=>n.id);
+  const tg=()=>Object.fromEntries(N.map(n=>[n.id,done[n.id]?'':'in:'+indeg[n.id]]));const sd=()=>[{t:'Ready queue',v:q.length?q.map(String):['empty']},{t:'Order',v:order.length?order.map(String):['none yet']}];
+  f({tag:tg(),hl:Object.fromEntries(q.map(x=>[x,'in'])),note:'Each arrow means "must come before". Count incoming arrows (in:). Anything with 0 can start now.',side:sd()});
+  while(q.length){const u=q.shift();order.push(u);done[u]=1;const eh={},freed=[];
+    E.forEach(([a,b])=>{if(a===u){eh[a+'-'+b]='on';indeg[b]--;if(!indeg[b]){q.push(b);freed.push(b);}}});
+    const hl={};Object.keys(done).forEach(k=>hl[k]='ok');q.forEach(x=>hl[x]='in');hl[u]='on';
+    f({hl,eh,tag:tg(),note:`Take ${u}. Remove its outgoing arrows.${freed.length?` ${freed.join(' and ')} ${freed.length>1?'now have':'now has'} 0 incoming: ready.`:''}`,side:sd()});}
+  f({hl:Object.fromEntries(order.map(x=>[x,'ok'])),tag:tg(),note:`Valid order: ${order.join(' → ')}. All ${N.length} nodes came out, so there is no cycle.`,side:sd()});
+  return {title:'Course order with prerequisites',frames:fr};};
+
+V.uf=()=>{const N=[{id:0,x:60,y:60},{id:1,x:175,y:40},{id:2,x:120,y:175},{id:3,x:285,y:55},{id:4,x:380,y:135},{id:5,x:275,y:195}];
+  const E=[[0,1],[1,2],[3,4],[2,0],[4,5],[2,5]],par=[0,1,2,3,4,5];const find=x=>{while(par[x]!==x){par[x]=par[par[x]];x=par[x];}return x;};
+  const [fr,f]=mk({k:'graph',gid:'uf',nodes:N,edges:E});const added={};
+  const fill=()=>Object.fromEntries(N.map(n=>[n.id,find(n.id)]));const sd=()=>[{t:'Leader of each node',v:par.map((_,i)=>`${i} → ${find(i)}`)}];
+  f({fill:fill(),note:'Everyone starts as their own group (own colour). Process the links one at a time.',side:sd()});
+  E.forEach(([a,b])=>{const ra=find(a),rb=find(b),eh={...added};
+    if(ra===rb){eh[a+'-'+b]='bad';f({fill:fill(),eh,hl:{[a]:'on',[b]:'on'},note:`Link ${a}–${b}: both already follow leader ${ra}. Already connected, so this link is redundant (it would close a loop).`,side:sd()});}
+    else{par[ra]=rb;added[a+'-'+b]='ok';eh[a+'-'+b]='ok';f({fill:fill(),eh,hl:{[a]:'on',[b]:'on'},note:`Link ${a}–${b}: leaders ${ra} and ${rb} differ. Merge: group ${ra} now follows ${rb}.`,side:sd()});}});
+  f({fill:fill(),eh:{...added},note:`${new Set(N.map(n=>find(n.id))).size} group left. "Same group?" is just "same leader?", almost O(1).`,side:sd()});
+  return {title:'Grouping 6 nodes with union-find',frames:fr};};
+
+V.sp=()=>{const N=[{id:'A',x:40,y:118},{id:'B',x:155,y:40},{id:'C',x:155,y:195},{id:'D',x:285,y:40},{id:'E',x:285,y:195},{id:'F',x:395,y:118}];
+  const E=[['A','B',4],['A','C',2],['C','B',1],['B','D',5],['C','D',8],['C','E',10],['D','E',2],['D','F',6],['E','F',3]];
+  const adj={};N.forEach(n=>adj[n.id]=[]);E.forEach(([a,b,w])=>{adj[a].push([b,w]);adj[b].push([a,w]);});
+  const dist={};N.forEach(n=>dist[n.id]=Infinity);dist.A=0;let pq=[[0,'A']];const done={};const [fr,f]=mk({k:'graph',gid:'sp',nodes:N,edges:E});
+  const tg=()=>Object.fromEntries(N.map(n=>[n.id,dist[n.id]===Infinity?'∞':String(dist[n.id])]));
+  const sd=()=>[{t:'Priority queue (distance node)',v:pq.length?pq.slice().sort((a,b)=>a[0]-b[0]).map(([d,u])=>`${d} ${u}`):['empty']}];
+  f({tag:tg(),hl:{A:'in'},note:'Start at A with distance 0; everything else is ∞. Always settle the closest unsettled node next.',side:sd()});
+  while(pq.length){pq.sort((a,b)=>a[0]-b[0]);const [d,u]=pq.shift();if(done[u]||d>dist[u])continue;done[u]=1;
+    const hl={};Object.keys(done).forEach(k=>hl[k]='ok');hl[u]='on';f({hl,tag:tg(),note:`Closest unsettled node is ${u} (${d}). Its distance is now final.`,side:sd()});
+    for(const [v,w] of adj[u]){if(done[v])continue;const eh={[u+'-'+v]:'on'};
+      if(d+w<dist[v]){const old=dist[v];dist[v]=d+w;pq.push([d+w,v]);f({hl:{...hl,[v]:'in'},eh,tag:tg(),note:`Through ${u}, ${v} costs ${d} + ${w} = ${d+w}, better than ${old===Infinity?'∞':old}. Update.`,side:sd()});}
+      else f({hl:{...hl,[v]:'in'},eh,tag:tg(),note:`Through ${u}, ${v} would cost ${d+w}, no better than ${dist[v]}. Skip.`,side:sd()});}}
+  f({hl:Object.fromEntries(N.map(n=>[n.id,'ok'])),tag:tg(),eh:{'A-C':'ok','C-B':'ok','B-D':'ok','D-E':'ok','E-F':'ok'},note:`All final. A to F costs ${dist.F}: A → C → B → D → E → F, not the "obvious" direct-looking route.`});
+  return {title:"Dijkstra's shortest paths from A",frames:fr};};
+
+V.gdy=()=>{const a=[2,3,1,1,4];const [fr,f]=mk({k:'arr',arr:a});let far=0;
+  f({note:'Each number is the longest jump from that spot. Greedy idea: only track the farthest spot reachable so far.',side:[{t:'Farthest reachable',v:'0'}]});
+  for(let i=0;i<a.length;i++){if(i>far){f({hl:{[i]:'bad'},ptr:{i},note:`Index ${i} is out of reach. Stuck.`});break;}
+    const old=far;far=Math.max(far,i+a[i]);
+    f({win:[0,Math.min(far,a.length-1)],hl:{[i]:'on'},ptr:{i},note:`From index ${i} we can jump ${a[i]}, up to ${i+a[i]}. Farthest is ${far}${far>old?'':' (no change)'}.`,side:[{t:'Farthest reachable',v:String(far)}]});
+    if(far>=a.length-1){f({win:[0,a.length-1],hl:{[a.length-1]:'ok'},note:'The last index is within reach. Answer: true, without trying every jump path.',side:[{t:'Farthest reachable',v:String(far)}]});break;}}
+  return {title:'Jump Game [2, 3, 1, 1, 4]',frames:fr};};
+
+V.dp1=()=>{const a=[2,7,9,3,1,5];const [fr,f]=mk({k:'arr',arr:a,lab:'house ₹'});const dp=Array(a.length).fill('');
+  f({row2:{label:'best ₹',vals:dp.slice()},note:'Rob houses for max money, never two neighbours. best[i] = max(skip house i, rob it + best two houses back).'});
+  for(let i=0;i<a.length;i++){const skip=i>0?dp[i-1]:0,two=i>1?dp[i-2]:0,rob=a[i]+two;dp[i]=Math.max(skip,rob);const h2={};if(i>0)h2[i-1]='in';if(i>1)h2[i-2]='in';h2[i]='on';
+    f({row2:{label:'best ₹',vals:dp.slice(),hl:h2},hl:{[i]:'on'},ptr:{i},note:`House ${i} (₹${a[i]}): skip it → ${skip}, or rob it → ${a[i]} + ${two} = ${rob}. Keep ${dp[i]}.`});}
+  f({row2:{label:'best ₹',vals:dp.slice(),hl:{[a.length-1]:'ok'}},hl:{0:'ok',2:'ok',5:'ok'},note:`Max loot ₹${dp[a.length-1]} (houses 0, 2, 5). Each answer is written once and reused: O(n).`});
+  return {title:'House Robber [2, 7, 9, 3, 1, 5]',frames:fr};};
+
+V.dp2=()=>{const A='ACE',B='ABCDE',R=A.length+1,C=B.length+1;const T=[...Array(R)].map((_,i)=>[...Array(C)].map((_,j)=>i===0||j===0?0:''));
+  const [fr,f]=mk({k:'tab',rh:['∅',...A],ch:['∅',...B]});const cp=()=>T.map(r=>r.slice());
+  f({cells:cp(),note:'Cell (row, column) = longest common subsequence of the two prefixes. The empty-string row and column are 0.'});
+  for(let i=1;i<R;i++)for(let j=1;j<C;j++){const hl={};let msg;
+    if(A[i-1]===B[j-1]){T[i][j]=T[i-1][j-1]+1;hl[(i-1)+','+(j-1)]='in';msg=`'${A[i-1]}' = '${B[j-1]}': a match! Diagonal + 1 = ${T[i][j]}.`;}
+    else{T[i][j]=Math.max(T[i-1][j],T[i][j-1]);hl[(i-1)+','+j]='in';hl[i+','+(j-1)]='in';msg=`'${A[i-1]}' ≠ '${B[j-1]}': take the better of above (${T[i-1][j]}) and left (${T[i][j-1]}) = ${T[i][j]}.`;}
+    hl[i+','+j]='on';f({cells:cp(),hl,note:msg});}
+  f({cells:cp(),hl:{[(R-1)+','+(C-1)]:'ok'},note:`Bottom-right = ${T[R-1][C-1]}: all of "ACE" appears in order inside "ABCDE". O(n × m).`});
+  return {title:'LCS of "ACE" and "ABCDE"',frames:fr};};
+
+V.knap=()=>{const a=[1,5,11,5],t=11,dp=Array(t+1).fill(false);dp[0]=true;const sh=()=>dp.map(x=>x?'✓':'');const [fr,f]=mk({k:'arr',lab:'sum'});
+  const items=k=>[{t:'Items',v:a.map((y,j)=>j===k?`▶ ${y}`:String(y))}];
+  f({arr:sh(),hl:{0:'ok'},note:`Can some items add to exactly ${t} (half of ${a.reduce((x,y)=>x+y)})? ✓ under a sum means "reachable". Sum 0 always is.`,side:items(-1)});
+  a.forEach((x,k)=>{f({arr:sh(),note:`Item ${x}: loop sums from ${t} down to ${x}. Going backwards means each item is used at most once.`,side:items(k)});
+    for(let s=t;s>=x;s--)if(!dp[s]&&dp[s-x]){dp[s]=true;f({arr:sh(),hl:{[s]:'on',[s-x]:'in'},ptr:{s},note:`Sum ${s-x} was reachable. Add ${x}: sum ${s} is reachable now.`,side:items(k)});}});
+  f({arr:sh(),hl:{[t]:'ok'},note:`Sum ${t} is reachable (1 + 5 + 5), so the array splits into two equal halves. O(n × target).`,side:items(-1)});
+  return {title:'Partition [1, 5, 11, 5] into equal halves',frames:fr};};
+
+V.sm=()=>{const p=[1,3,2,8,4,9],fee=2;const [fr,f]=mk({k:'arr',arr:p,lab:'price'});let hold=-Infinity,free=0;const fm=x=>x===-Infinity?'−∞':String(x);
+  const s=()=>[{t:'Best money if HOLDING a share',v:fm(hold)},{t:'Best money if NOT holding',v:String(free)}];
+  f({note:`Prices by day, fee ₹${fee} per sale. Each day track two moods: holding a share, or not holding.`,side:s()});
+  p.forEach((x,i)=>{const h0=hold,f0=free;hold=Math.max(h0,f0-x);free=Math.max(f0,h0+x-fee);
+    f({hl:{[i]:'on'},ptr:{day:i},note:`Day ${i}, price ${x}. Holding: keep (${fm(h0)}) or buy today (${f0} − ${x} = ${f0-x}) → ${hold}. Not holding: wait (${f0}) or sell (${fm(h0+x-fee)}) → ${free}.`,side:s()});});
+  f({note:`End not holding: max profit ₹${free} (buy 1 sell 8, buy 4 sell 9).`,hl:{0:'ok',3:'ok',4:'ok',5:'ok'},side:s()});
+  return {title:'Stock with a transaction fee',frames:fr};};
+
+V.idp=()=>{const s='bbbab',n=s.length,T=[...Array(n)].map(()=>Array(n).fill(''));const [fr,f]=mk({k:'tab',rh:[...s],ch:[...s]});const cp=()=>T.map(r=>r.slice());
+  for(let i=0;i<n;i++)T[i][i]=1;
+  f({cells:cp(),hl:Object.fromEntries([...Array(n)].map((_,i)=>[i+','+i,'in'])),note:'Cell (i, j) = longest palindrome you can pick from s[i..j]. One letter alone scores 1. Fill by increasing length, never row by row.'});
+  for(let len=2;len<=n;len++)for(let i=0;i+len-1<n;i++){const j=i+len-1,hl={};let msg;
+    if(s[i]===s[j]){T[i][j]=(len===2?0:T[i+1][j-1])+2;if(len>2)hl[(i+1)+','+(j-1)]='in';msg=`Length ${len}, "${s.slice(i,j+1)}": both ends are '${s[i]}'. Inside + 2 = ${T[i][j]}.`;}
+    else{T[i][j]=Math.max(T[i+1][j],T[i][j-1]);hl[(i+1)+','+j]='in';hl[i+','+(j-1)]='in';msg=`Length ${len}, "${s.slice(i,j+1)}": ends differ. Drop one end and keep the better: ${T[i][j]}.`;}
+    hl[i+','+j]='on';f({cells:cp(),hl,note:msg});}
+  f({cells:cp(),hl:{['0,'+(n-1)]:'ok'},note:`Top-right = ${T[0][n-1]} ("bbbb"). Every range was built from smaller ranges.`});
+  return {title:'Longest palindromic subsequence of "bbbab"',frames:fr};};
+
+V.bm=()=>{const it=['C','B','A'];const [fr,f]=mk({k:'arr',arr:it,idx:['bit 2','bit 1','bit 0']});
+  f({note:'A number 0–7 in binary is a row of 3 switches. Switch on = item used. One integer stores a whole subset.'});
+  for(let m=0;m<8;m++){const hl={},on=[];[0,1,2].forEach(b=>{if(m>>b&1){hl[2-b]='on';on.push(it[2-b]);}});
+    f({hl,note:`mask ${m} = ${m.toString(2).padStart(3,'0')} → {${on.reverse().join(', ')}}`,side:[{t:'mask',v:`${m} = ${m.toString(2).padStart(3,'0')}`}]});}
+  f({note:'Bitmask DP stores dp[mask] = best answer using exactly those items: 2ⁿ masks, n choices each.'});
+  return {title:'Subsets of {A, B, C} as numbers',frames:fr};};
+
+V.bit=()=>{const a=[4,1,2,1,2];const [fr,f]=mk({k:'arr',arr:a});let x=0;const b=v=>v.toString(2).padStart(3,'0');
+  f({note:'Every number appears twice except one. XOR is a toggle: equal bits cancel, so pairs vanish.',side:[{t:'Running XOR',v:'000 (0)'}]});
+  a.forEach((v,i)=>{const o=x;x^=v;const hl={};for(let j=0;j<i;j++)hl[j]='seen';hl[i]='on';f({hl,ptr:{i},note:`${b(o)} XOR ${b(v)} = ${b(x)}   (${o} ^ ${v} = ${x})`,side:[{t:'Running XOR',v:`${b(x)} (${x})`}]});});
+  f({hl:{0:'ok'},note:`The pairs cancelled. The loner is ${x}. O(n) time, O(1) space.`,side:[{t:'Running XOR',v:`${b(x)} (${x})`}]});
+  return {title:'Single Number in [4, 1, 2, 1, 2]',frames:fr};};
+
+V.math=()=>{let x=3,res=1;const bits=(13).toString(2).split('').reverse();const [fr,f]=mk({k:'arr',arr:bits,idx:bits.map((_,i)=>'×'+(2**i)),lab:'13 in bits'});
+  f({note:'Compute 3¹³. 13 = 8 + 4 + 1 (binary 1101, lowest bit shown first). Square x every step; multiply it into the result only where the bit is 1.',side:[{t:'x',v:'3'},{t:'result',v:'1'}]});
+  bits.forEach((bt,i)=>{if(bt==='1')res*=x;f({hl:{[i]:bt==='1'?'on':'dim'},ptr:{i},note:bt==='1'?`Bit is 1: result × 3^${2**i} = ${res}.`:`Bit is 0: skip 3^${2**i}.`,side:[{t:'x (= 3^'+(2**i)+')',v:String(x)},{t:'result',v:String(res)}]});x*=x;});
+  f({note:`3¹³ = ${res} in 4 steps instead of 12 multiplications. O(log n).`,side:[{t:'result',v:String(res)}]});
+  return {title:'Fast power: 3¹³',frames:fr};};
+
+V.des=()=>{const cap=3;let ord=[];const m={};const ops=[['put',1,'A'],['put',2,'B'],['put',3,'C'],['get',1],['put',4,'D'],['get',2]];const [fr,f]=mk({k:'arr',lab:'newest →'});
+  const snap=(hl,note)=>f({arr:ord.map(k=>`${k}:${m[k]}`),idx:ord.map((_,i)=>i===0?'newest':i===ord.length-1?'oldest':''),hl,note,side:[{t:'Hash map keys',v:Object.keys(m).length?Object.keys(m):['empty']},{t:'Capacity',v:String(cap)}]});
+  ops.forEach(op=>{if(op[0]==='put'){const [,k,v]=op;m[k]=v;ord=[k,...ord.filter(x=>x!==k)];
+      if(ord.length>cap){snap({0:'on',[ord.length-1]:'bad'},`put(${k}, ${v}): goes to the front. Now ${ord.length} items, over capacity. Evict the oldest (${ord[ord.length-1]}).`);const ev=ord.pop();delete m[ev];snap({0:'on'},`Key ${ev} removed from both the list and the map, in O(1).`);}
+      else snap({0:'on'},`put(${k}, ${v}): the newest item goes to the front.`);}
+    else{const k=op[1];if(k in m){ord=[k,...ord.filter(x=>x!==k)];snap({0:'ok'},`get(${k}) → ${m[k]}. The map finds it instantly; move it to the front (recently used).`);}
+      else snap({},`get(${k}) → -1. It was evicted earlier.`);}});
+  return {title:'LRU cache with capacity 3',frames:fr};};
+
+V.adv=()=>{const n=8,low=i=>i&-i;const ticks=[...Array(n)].map((_,k)=>[k+0.5,k+1]);const [fr,f]=mk({k:'int',min:0,max:8,ticks});
+  const bars=cls=>[...Array(n)].map((_,k)=>{const i=k+1;return{s:i-low(i),e:i,lab:`tree[${i}]`,txt:i-low(i)+1===i?`${i}`:`${i-low(i)+1}–${i}`,cls:cls[i]||''};});
+  f({bars:bars({}),note:'Fenwick tree: box tree[i] stores the sum of a block ending at i. Block size = lowest set bit of i (i & −i).'});
+  let i=7;const path=[],c1={};while(i>0){c1[i]='on';path.push(i);f({bars:bars({...c1}),note:`query(7): add tree[${i}] (covers ${i-low(i)+1}–${i}). Jump to ${i} − ${low(i)} = ${i-low(i)}.`});c1[i]='ok';i-=low(i);}
+  f({bars:bars(c1),note:`Sum of 1–7 from just ${path.length} boxes: tree[${path.join('] + tree[')}].`});
+  const c2={},up=[];i=3;while(i<=n){c2[i]='on';up.push(i);f({bars:bars({...c2}),note:`update(3): tree[${i}] covers position 3, so change it. Jump to ${i} + ${low(i)} = ${i+low(i)}.`});c2[i]='in';i+=low(i);}
+  f({bars:bars(c2),note:`Changing position 3 touched only boxes ${up.join(', ')}. Query and update are both O(log n).`});
+  return {title:'Fenwick tree: query and update',frames:fr};};
+
+/* ---------- player ---------- */
+function initVis(det){
+  const box=det.querySelector('.vis'),gen=V[det.id];if(!gen){box.remove();return;}
+  const {title,frames}=gen(),N=frames.length;
+  box.innerHTML=`<div class="vhead"><div><h3>Watch it work</h3><p class="vsub">${esc(title)}</p></div><div class="vctl">
+    <button class="vb" data-a="reset" aria-label="Restart">↺ Restart</button><button class="vb" data-a="back">◀ Back</button>
+    <button class="vb play" data-a="play">▶ Play</button><button class="vb" data-a="next">Next ▶</button>
+    <select class="vb" aria-label="Speed"><option value="1700">Slow</option><option value="1050" selected>Normal</option><option value="550">Fast</option></select></div></div>
+    <div class="vprog"><i></i></div><div class="stage"></div><div class="note" aria-live="polite"></div><div class="side"></div>`;
+  const stage=box.querySelector('.stage'),note=box.querySelector('.note'),side=box.querySelector('.side'),pb=box.querySelector('.play'),sel=box.querySelector('select');
+  let i=0,timer=null;
+  const render=()=>{const fr=frames[i];REND[fr.k](stage,fr);
+    note.innerHTML=`<span class="sn">${i+1}/${N}</span>${esc(fr.note||'')}`;
+    side.innerHTML=(fr.side||[]).map(s=>`<div><div class="st">${esc(s.t)}</div>${Array.isArray(s.v)?`<div class="chips2">${s.v.map(x=>`<span>${esc(String(x))}</span>`).join('')}</div>`:`<div class="sv">${esc(String(s.v))}</div>`}</div>`).join('');
+    box.querySelector('.vprog i').style.width=((i+1)/N*100)+'%';};
+  const stop=()=>{clearInterval(timer);timer=null;pb.textContent='▶ Play';};
+  const play=()=>{if(i>=N-1)i=0,render();pb.textContent='❚❚ Pause';timer=setInterval(()=>{if(i<N-1){i++;render();}if(i>=N-1)stop();},+sel.value);};
+  box.querySelector('.vctl').addEventListener('click',e=>{const a=e.target.dataset&&e.target.dataset.a;if(!a)return;
+    if(a==='play'){timer?stop():play();}
+    else{stop();if(a==='next'&&i<N-1)i++;if(a==='back'&&i>0)i--;if(a==='reset')i=0;render();}});
+  sel.addEventListener('change',()=>{if(timer){stop();play();}});
+  render();
+}
+
+const KEY = "lc-pattern-map-v1";
+let state = {s:{}, r:{}, p:{}, c:{}, t:0};    // s = solved, r = starred (redo), p = in progress, c = custom problems per pattern, t = last-saved timestamp
+const saveMsg = document.getElementById("saveMsg");
+function normalize(o){ return Object.assign({s:{},r:{},p:{},c:{},t:0}, (o&&typeof o==="object")?o:{}); }
+
+/* ---- storage layers: every save writes to all of them; load picks the newest copy ---- */
+const layers = {
+  local: {
+    read(){ try { const raw = localStorage.getItem(KEY); return raw ? JSON.parse(raw) : null; } catch(e){ return null; } },
+    write(v){ try { localStorage.setItem(KEY, JSON.stringify(v)); return true; } catch(e){ return false; } },
+    clear(){ try { localStorage.removeItem(KEY); } catch(e){} }
+  },
+  cookie: {
+    read(){ try { const m = document.cookie.match(new RegExp("(?:^|; )"+KEY+"=([^;]*)")); return m ? JSON.parse(decodeURIComponent(m[1])) : null; } catch(e){ return null; } },
+    write(v){ try { const str = encodeURIComponent(JSON.stringify(v)); if (str.length > 3800) return false;
+      document.cookie = KEY+"="+str+"; max-age=31536000; path=/; SameSite=Lax"; return true; } catch(e){ return false; } },
+    clear(){ try { document.cookie = KEY+"=; max-age=0; path=/"; } catch(e){} }
+  },
+  idb: {
+    db(){ return new Promise((res,rej)=>{ try { if(!window.indexedDB) return rej(new Error("no idb"));
+      const r = indexedDB.open(KEY, 1); r.onupgradeneeded = ()=>r.result.createObjectStore("kv");
+      r.onsuccess = ()=>res(r.result); r.onerror = ()=>rej(r.error); r.onblocked = ()=>rej(new Error("blocked")); } catch(e){ rej(e); } }); },
+    async read(){ try { const db = await this.db(); return await new Promise((res,rej)=>{ const tx = db.transaction("kv","readonly");
+      const q = tx.objectStore("kv").get("state"); q.onsuccess=()=>res(q.result||null); q.onerror=()=>rej(q.error); }); } catch(e){ return null; } },
+    async write(v){ try { const db = await this.db(); return await new Promise((res,rej)=>{ const tx = db.transaction("kv","readwrite");
+      tx.objectStore("kv").put(v,"state"); tx.oncomplete=()=>res(true); tx.onerror=()=>rej(tx.error); }); } catch(e){ return false; } },
+    async clear(){ try { const db = await this.db(); await new Promise((res)=>{ const tx = db.transaction("kv","readwrite"); tx.objectStore("kv").delete("state"); tx.oncomplete=res; tx.onerror=res; }); } catch(e){} }
+  }
+};
+function newest(a, b){ if(!a) return b; if(!b) return a; return (b.t||0) > (a.t||0) ? b : a; }
+function count(o){ return Object.keys(o.s||{}).length + Object.keys(o.r||{}).length + Object.keys(o.p||{}).length + Object.keys(o.c||{}).length; }
+
+// synchronous load first (localStorage / cookie) so the page renders correctly at once
+state = normalize(newest(layers.local.read(), layers.cookie.read()));
+
+let saveTimer = null;
+function save(){
+  state.t = Date.now();
+  const ok1 = layers.local.write(state), ok2 = layers.cookie.write(state);
+  layers.idb.write(state).then(ok3 => {
+    if (!saveMsg) return;
+    if (ok1 || ok2 || ok3) { saveMsg.textContent = "Saved ✓"; saveMsg.className = "ok"; }
+    else { saveMsg.textContent = "Could not save in this browser — use Export to keep a backup"; saveMsg.className = "bad"; }
+    clearTimeout(saveTimer); if (ok1||ok2||ok3) saveTimer = setTimeout(()=>{ saveMsg.textContent=""; saveMsg.className=""; }, 1800);
+  });
+}
+function clearAll(){ layers.local.clear(); layers.cookie.clear(); layers.idb.clear(); }
+// flush once more when the tab is hidden / closed, in case a write was still pending
+document.addEventListener("visibilitychange", ()=>{ if (document.visibilityState === "hidden" && count(state)) { layers.local.write(state); layers.cookie.write(state); } });
+window.addEventListener("pagehide", ()=>{ if (count(state)) { layers.local.write(state); layers.cookie.write(state); } });
+
+const slug = t => t.toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"");
+const esc = t => t.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+const color = ph => PHASES.find(p=>p.id===ph).c;
+
+// map
+const mapEl = document.getElementById("map");
+const SHORT={hash:"Hashing",kad:"Kadane",mat:"Matrix",ll:"Linked List",fs:"Fast & Slow",mono:"Monotonic Stack",bsa:"Binary Search on Answer",dfs:"Tree DFS",bfs:"Tree BFS",bst:"BST",heap:"Heap",int:"Intervals",gr:"Graph BFS / DFS",topo:"Topological Sort",sp:"Shortest Path & MST",dp1:"1D DP",dp2:"2D DP",knap:"Knapsack DP",sm:"State-Machine DP",idp:"Interval DP",bm:"Bitmask DP",bit:"Bits",math:"Math",des:"Design",adv:"Advanced Trees & Strings"};
+const shortName=p=>SHORT[p.id]||p.term.split(" (")[0];
+mapEl.innerHTML = PHASES.map(ph => `
+  <div class="lineRow">
+    <div class="lineName">${ph.name}<small>${ph.sub}</small></div>
+    <div class="route" data-ph="${ph.id}" style="--c:${ph.c}"></div>
+  </div>`).join("");
+function drawRoutes(){
+  mapEl.querySelectorAll(".route").forEach(el=>{
+    const list=P.filter(p=>p.ph===+el.dataset.ph),n=list.length;
+    const W=el.clientWidth,pad=54,rowH=96,top=16;
+    const per=Math.max(2,Math.min(n,Math.floor((W-2*pad)/120)+1));
+    const colW=(W-2*pad)/(per-1);
+    const pos=list.map((p,k)=>{const r=Math.floor(k/per),c=k%per;return{x:r%2?W-pad-c*colW:pad+c*colW,y:top+r*rowH};});
+    let d=`M${pos[0].x},${pos[0].y}`;
+    for(let k=1;k<n;k++){const a=pos[k-1],b=pos[k];
+      if(b.y!==a.y){const right=Math.floor((k-1)/per)%2===0;d+=` A${rowH/2},${rowH/2} 0 0 ${right?1:0} ${a.x},${b.y}`;}
+      d+=` L${b.x},${b.y}`;}
+    const rows=Math.ceil(n/per),H=top+(rows-1)*rowH+64;
+    el.style.height=H+"px";
+    el.innerHTML=`<svg width="${W}" height="${H}" aria-hidden="true"><path class="rbase" d="${d}"/><path class="rprog" d="${d}"/></svg>`+
+      list.map((p,k)=>`<a class="stop${k===0||k===n-1?" term":""}" href="#${p.id}" data-stop="${p.id}" style="left:${pos[k].x}px;top:${pos[k].y}px;width:${Math.min(colW-6,132)}px"><span class="dot"><i></i></span><span class="sl">${esc(shortName(p))}</span></a>`).join("");
+  });
+}
+drawRoutes();
+mapEl.addEventListener("click",e=>{const s=e.target.closest(".stop");if(s){const d=document.getElementById(s.dataset.stop);if(d)d.open=true;}});
+let lastW=mapEl.clientWidth;
+new ResizeObserver(()=>{if(mapEl.clientWidth!==lastW){lastW=mapEl.clientWidth;drawRoutes();refresh();}}).observe(mapEl);
+
+// custom problems (yours) live in state.c[patternId] = [[n,t,d,sl], ...] and are merged into each pattern's list
+const builtin = new Map(P.map(p=>[p.id, p.pr.slice()]));
+function applyCustom(){ P.forEach(p=>{ p.pr = builtin.get(p.id).concat((state.c[p.id]||[]).map(x=>x.slice())); }); }
+function probHref(t, sl){ if (sl && /^https?:\/\//i.test(sl)) return sl; return "https://leetcode.com/problems/" + (sl || slug(t)) + "/"; }
+function rowsHTML(p){
+  const base = builtin.get(p.id).length;
+  return p.pr.map(([n,t,d,sl], i) => `
+        <tr data-n="${esc(String(n))}" data-d="${d}" data-text="${esc((n+" "+t+" "+p.name+" "+p.term).toLowerCase())}"${i>=base?' class="custom"':''}>
+          <td class="ck"><input type="checkbox" aria-label="Mark ${esc(t)} solved" data-n="${esc(String(n))}"></td>
+          <td class="n">${String(n).startsWith("c") ? "—" : esc(String(n))}</td>
+          <td class="t"><a href="${esc(probHref(t, sl))}" target="_blank" rel="noopener">${esc(t)}</a></td>
+          <td><span class="d ${d}">${d==="E"?"Easy":d==="M"?"Medium":"Hard"}</span></td>
+          <td style="width:90px"><button class="wip" data-n="${esc(String(n))}" aria-pressed="false" aria-label="Mark ${esc(t)} in progress">in progress</button></td>
+          <td style="width:40px"><button class="star" data-n="${esc(String(n))}" aria-pressed="false" aria-label="Add ${esc(t)} to redo list">★</button></td>
+          <td style="width:30px">${i>=base?`<button class="del" data-n="${esc(String(n))}" data-pid="${p.id}" aria-label="Remove ${esc(t)}">✕</button>`:""}</td>
+        </tr>`).join("");
+}
+function rebuildTable(pid){ const p=P.find(x=>x.id===pid); const tb=document.querySelector(`#${pid} table.probs`); if(p&&tb) tb.innerHTML=rowsHTML(p); }
+applyCustom();
+
+// sections
+const main = document.getElementById("main");
+main.innerHTML = PHASES.map(ph => `
+  <div class="phaseHead"><h2>${ph.name}</h2><p>${ph.sub}. ${ph.blurb}</p></div>
+  ${P.filter(p=>p.ph===ph.id).map(p => `
+  <details class="pat" id="${p.id}" style="--c:${ph.c}">
+    <summary>
+      <div class="pname">${p.name} <em>(${esc(p.term)})</em></div>
+      <span class="caret" aria-hidden="true">▶</span>
+      <div class="pmeta"><div class="bar"><i></i></div><span class="cnt"></span></div>
+    </summary>
+    <div class="body">
+      <div class="vis"></div>
+      <div class="cols">
+        <div class="box">
+          <h3>The idea in one picture</h3>
+          <div class="analogy">${esc(p.an)}</div>
+          <h3>Spot it when you see</h3>
+          <ul>${p.spot.map(s=>`<li>${esc(s)}</li>`).join("")}</ul>
+        </div>
+        <div class="box">
+          <h3>Template (pseudocode)</h3>
+          <pre><code>${esc(p.tpl)}</code></pre>
+          <div class="cx">${esc(p.cx)}</div>
+        </div>
+      </div>
+      <div class="trap"><b>Common trap:</b> ${esc(TRAP[p.id]||"")}</div>
+      <div class="tscroll"><table class="probs">
+        ${rowsHTML(p)}
+      </table></div>
+      <div class="addRow" data-pid="${p.id}">
+        <input class="num" type="text" placeholder="No." aria-label="Problem number (optional)">
+        <input class="title" type="text" placeholder="Problem title" aria-label="Problem title" required>
+        <select class="diff" aria-label="Difficulty"><option value="E">Easy</option><option value="M" selected>Medium</option><option value="H">Hard</option></select>
+        <input class="url" type="text" placeholder="LeetCode URL or slug (optional)" aria-label="LeetCode URL or slug">
+        <button type="button" class="addBtn">+ Add problem</button>
+        <span class="hint">Add your own problem to this pattern. Number and link are optional; leave the link blank to use the title.</span>
+      </div>
+    </div>
+  </details>`).join("")}
+`).join("");
+
+function refresh(){
+  let tot=0, done=0;
+  const seen = new Set();
+  P.forEach(p => {
+    const n = p.pr.length, d = p.pr.filter(x=>state.s[x[0]]).length;
+    p.pr.forEach(x=>{ if(!seen.has(x[0])){seen.add(x[0]); tot++; if(state.s[x[0]]) done++;} });
+    const sec = document.getElementById(p.id);
+    sec.querySelector(".pmeta .bar i").style.width = (d/n*100)+"%";
+    const w = p.pr.filter(x=>state.p[x[0]] && !state.s[x[0]]).length;
+    sec.querySelector(".cnt").textContent = `${d} of ${n} solved` + (w ? ` · ${w} in progress` : "");
+    const stop = document.querySelector(`[data-stop="${p.id}"]`);
+    stop.querySelector(".dot i").style.height = (d/n*100)+"%";
+    stop.classList.toggle("done", d===n);
+  });
+  PHASES.forEach(ph=>{const el=mapEl.querySelector(`.route[data-ph="${ph.id}"] .rprog`);if(!el)return;
+    const pr=P.filter(p=>p.ph===ph.id).flatMap(p=>p.pr),frac=pr.filter(x=>state.s[x[0]]).length/pr.length,L=el.getTotalLength();
+    el.style.strokeDasharray=L;el.style.strokeDashoffset=L*(1-frac);});
+  document.getElementById("ovNum").textContent = `${done} / ${tot}`;
+  document.getElementById("ovBar").style.width = (done/tot*100)+"%";
+  document.getElementById("ovPct").textContent = Math.round(done/tot*100)+"% solved";
+  document.querySelectorAll("tr[data-n]").forEach(tr => {
+    const n = tr.dataset.n;
+    tr.classList.toggle("solved", !!state.s[n]);
+    tr.querySelector("input").checked = !!state.s[n];
+    tr.querySelector(".star").setAttribute("aria-pressed", state.r[n] ? "true":"false");
+    const wip = !!state.p[n] && !state.s[n];
+    tr.classList.toggle("wip", wip);
+    tr.querySelector(".wip").setAttribute("aria-pressed", wip ? "true":"false");
+  });
+  applyFilter();
+}
+
+let diff="all", hideSolved=false, onlyStar=false;
+function applyFilter(){
+  const q = document.getElementById("q").value.trim().toLowerCase();
+  const filtering = q || diff!=="all" || hideSolved || onlyStar;
+  document.querySelectorAll("details.pat").forEach(det => {
+    let any=false;
+    det.querySelectorAll("tr[data-n]").forEach(tr=>{
+      const n=tr.dataset.n;
+      const ok = (!q || tr.dataset.text.includes(q)) && (diff==="all"||tr.dataset.d===diff) && !(hideSolved && state.s[n]) && !(onlyStar && !state.r[n]);
+      tr.classList.toggle("hidden", !ok); if(ok) any=true;
+    });
+    det.classList.toggle("hidden", filtering && !any);
+    if (filtering && any && (q || onlyStar)) det.open = true;
+  });
+}
+
+main.addEventListener("change", e => {
+  if (e.target.matches("input[type=checkbox]")) {
+    const n = e.target.dataset.n;
+    if (e.target.checked) { state.s[n]=1; delete state.p[n]; } else delete state.s[n];
+    save(); refresh();
+  }
+});
+main.addEventListener("click", e => {
+  const add = e.target.closest(".addBtn");
+  if (add) {
+    const box = add.closest(".addRow"), pid = box.dataset.pid;
+    const num = box.querySelector(".num").value.trim(), t = box.querySelector(".title").value.trim();
+    const d = box.querySelector(".diff").value; let link = box.querySelector(".url").value.trim();
+    if (!t) { box.querySelector(".title").focus(); return; }
+    const m = link.match(/leetcode\.(?:com|cn)\/problems\/([^/?#]+)/i); if (m) link = m[1];
+    const n = num ? num : "c" + Date.now().toString(36);
+    if (document.querySelector(`#${pid} tr[data-n="${CSS.escape(n)}"]`)) { alert("Problem " + n + " is already in this pattern."); return; }
+    (state.c[pid] = state.c[pid] || []).push([n, t, d, link || ""]);
+    applyCustom(); rebuildTable(pid); save(); refresh();
+    box.querySelectorAll("input").forEach(i=>i.value=""); box.querySelector(".title").focus();
+    return;
+  }
+  const del = e.target.closest(".del");
+  if (del) {
+    const pid = del.dataset.pid, n = del.dataset.n;
+    if (!confirm("Remove this problem from the list?")) return;
+    state.c[pid] = (state.c[pid]||[]).filter(x=>String(x[0])!==n); if(!state.c[pid].length) delete state.c[pid];
+    applyCustom(); rebuildTable(pid); save(); refresh(); return;
+  }
+  const w = e.target.closest(".wip");
+  if (w) { const n=w.dataset.n; if(state.p[n]) delete state.p[n]; else { state.p[n]=1; delete state.s[n]; } save(); refresh(); return; }
+  const b = e.target.closest(".star"); if(!b) return;
+  const n=b.dataset.n; if(state.r[n]) delete state.r[n]; else state.r[n]=1;
+  save(); refresh();
+});
+document.querySelectorAll(".chip[data-f]").forEach(ch => ch.addEventListener("click", () => {
+  diff = ch.dataset.f;
+  document.querySelectorAll(".chip[data-f]").forEach(c=>c.setAttribute("aria-pressed", c===ch?"true":"false"));
+  applyFilter();
+}));
+document.getElementById("hideSolved").addEventListener("click", e => { hideSolved=!hideSolved; e.currentTarget.setAttribute("aria-pressed",hideSolved); applyFilter(); });
+document.getElementById("onlyStar").addEventListener("click", e => { onlyStar=!onlyStar; e.currentTarget.setAttribute("aria-pressed",onlyStar); applyFilter(); });
+document.getElementById("q").addEventListener("input", applyFilter);
+main.addEventListener("keydown", e => { if (e.key==="Enter" && e.target.closest(".addRow")) { e.preventDefault(); e.target.closest(".addRow").querySelector(".addBtn").click(); } });
+document.getElementById("reset").addEventListener("click", () => {
+  if (confirm("Clear all solved ticks, in-progress marks and stars? (Problems you added will be kept.)")) { state={s:{},r:{},p:{},c:state.c,t:Date.now()}; clearAll(); save(); refresh(); }
+});
+// export / import backup
+document.getElementById("exportBtn").addEventListener("click", () => {
+  const blob = new Blob([JSON.stringify(state, null, 2)], {type:"application/json"});
+  const a = document.createElement("a"); a.href = URL.createObjectURL(blob);
+  a.download = "leetcode-progress-" + new Date().toISOString().slice(0,10) + ".json"; a.click();
+  setTimeout(()=>URL.revokeObjectURL(a.href), 1000);
+});
+document.getElementById("importBtn").addEventListener("click", () => document.getElementById("importFile").click());
+document.getElementById("importFile").addEventListener("change", e => {
+  const f = e.target.files[0]; if(!f) return;
+  const rd = new FileReader();
+  rd.onload = () => { try { const inc = normalize(JSON.parse(rd.result));
+      // merge: anything marked in either copy stays marked
+      const c = Object.assign({}, state.c);
+      Object.keys(inc.c||{}).forEach(pid=>{ const have = new Set((c[pid]||[]).map(x=>String(x[0]))); c[pid] = (c[pid]||[]).concat((inc.c[pid]||[]).filter(x=>!have.has(String(x[0])))); });
+      state = normalize({ s:Object.assign({}, state.s, inc.s), r:Object.assign({}, state.r, inc.r), p:Object.assign({}, state.p, inc.p), c });
+      Object.keys(state.p).forEach(k=>{ if(state.s[k]) delete state.p[k]; });
+      applyCustom(); P.forEach(p=>rebuildTable(p.id)); save(); refresh(); alert("Progress imported."); } catch(err){ alert("That file is not a valid progress backup."); } };
+  rd.readAsText(f); e.target.value = "";
+});
+// after first paint, also check IndexedDB (async) in case it holds a newer copy than localStorage/cookie
+layers.idb.read().then(v => { if (v && (v.t||0) > (state.t||0)) { state = normalize(v); applyCustom(); P.forEach(p=>rebuildTable(p.id)); refresh(); } });
+document.querySelectorAll("details.pat").forEach(d=>d.addEventListener("toggle",()=>{if(d.open&&!d.dataset.v){d.dataset.v="1";try{initVis(d);}catch(err){console.error(d.id,err);}}}));
+refresh();
+</script>
+</body>
+</html>
